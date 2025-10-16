@@ -1,0 +1,12 @@
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+  <div class="card-img-wrapper">
+    <img [ngSrc]="accommodation().imageUrl" fill class="w-100" alt="Alojamiento" priority />
+  </div>
+  <div class="card-body">
+    <h6 class="card-title mb-1">{{ accommodation().title }}</h6>
+    <p class="text-muted mb-0">{{ accommodation().pricePerNight | currency:'COP':'symbol':'1.0-0' }} por noche</p>
+    <p class="text-warning mb-0">
+      ★ {{ accommodation().avgRating }}
+    </p>
+  </div>
+</div>
