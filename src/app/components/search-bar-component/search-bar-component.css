@@ -1,0 +1,78 @@
+form {
+  max-width: 900px;
+  margin: auto;
+  border: 2px solid #febb02;
+}
+
+.input-group {
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.form-control:focus {
+  box-shadow: none;
+}
+
+.date-inputs {
+  display: flex;
+  gap: 0.5rem;
+  flex: 1;
+  align-items: center;
+  width: 100%;
+}
+
+.date-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+
+}
+
+.date-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6c757d;
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.date-wrapper input {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0.1rem;
+}
+
+.input-group:last-of-type {
+  min-width: 180px;
+}
+
+.btn-primary {
+  margin-left: 1rem;
+  flex-shrink: 0;
+}
+
+.form-control {
+  padding: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.form-control:focus {
+  box-shadow: none;
+}
+
+input[type="text"] {
+  cursor: pointer;
+}
+
+input[type="number"] {
+  min-width: 120px;
+}
+
+.btn-primary {
+  white-space: nowrap;
+  padding: 0.5rem 2rem;
+}
