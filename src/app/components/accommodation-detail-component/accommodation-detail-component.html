@@ -79,6 +79,13 @@
           </div>
         </div>
       </div>
+
+      <!-- Sección de comentarios -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <app-comment-list [accommodationId]="accommodation()!.id" />
+        </div>
+      </div>
     </div>
 
     <!-- Sidebar con información de reserva -->

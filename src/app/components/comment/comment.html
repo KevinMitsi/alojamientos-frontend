@@ -1,0 +1,97 @@
+<div class="comments-section">
+  <!-- Header de comentarios -->
+  <div class="mb-4">
+    <h5 class="mb-0">
+      <i class="bi bi-star-fill text-warning me-2"></i>
+      <span *ngIf="totalComments() > 0">{{ totalComments() }} {{ totalComments() === 1 ? 'reseña' : 'reseñas' }}</span>
+      <span *ngIf="totalComments() === 0">Sin reseñas aún</span>
+    </h5>
+  </div>
+
+  <!-- Estado de carga -->
+  <div *ngIf="loading()" class="text-center py-4">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando comentarios...</span>
+    </div>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div *ngIf="error()" class="alert alert-warning" role="alert">
+    {{ error() }}
+  </div>
+
+  <!-- Lista de comentarios -->
+  <div *ngIf="!loading() && !error()" class="comments-list">
+    <div *ngIf="comments().length === 0" class="text-center text-muted py-5">
+      <i class="bi bi-chat-dots fs-1 mb-3 d-block"></i>
+      <p>Aún no hay comentarios para este alojamiento.</p>
+      <p class="small">¡Sé el primero en dejar una reseña!</p>
+    </div>
+
+    <!-- Card de cada comentario -->
+    <div *ngFor="let comment of comments()" class="comment-card mb-4">
+      <div class="d-flex gap-3">
+        <!-- Avatar del usuario -->
+        <div class="flex-shrink-0">
+          <div class="avatar" *ngIf="!comment.userAvatar">
+            {{ getInitials(comment.userName) }}
+          </div>
+          <img 
+            *ngIf="comment.userAvatar" 
+            [src]="comment.userAvatar" 
+            [alt]="comment.userName"
+            class="avatar-img"
+          >
+        </div>
+
+        <!-- Contenido del comentario -->
+        <div class="flex-grow-1">
+          <!-- Información del usuario -->
+          <div class="mb-2">
+            <h6 class="mb-0 fw-semibold">{{ comment.userName || 'Usuario' }}</h6>
+            <small class="text-muted">{{ comment.userLocation || '' }}</small>
+          </div>
+
+          <!-- Rating y fecha -->
+          <div class="mb-2">
+            <span class="stars me-2">
+              <i 
+                *ngFor="let filled of getStarsArray(comment.rating)" 
+                [class]="filled ? 'bi bi-star-fill' : 'bi bi-star'"
+              ></i>
+            </span>
+            <small class="text-muted">· {{ formatDate(comment.startDate) }}</small>
+            <small class="text-muted" *ngIf="comment.isModerated"> · Moderado</small>
+          </div>
+
+          <!-- Texto del comentario -->
+          <p class="comment-text mb-2">{{ comment.text }}</p>
+
+          <!-- Respuesta del anfitrión -->
+          <div *ngIf="comment.hostReply" class="host-reply mt-3 p-3">
+            <div class="d-flex gap-2 align-items-center mb-2">
+              <strong class="small">Respuesta del anfitrión</strong>
+              <small class="text-muted" *ngIf="comment.hostReply.startDate">
+                · {{ formatDate(comment.hostReply.startDate) }}
+              </small>
+            </div>
+            <p class="mb-0 small">{{ comment.hostReply.text }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botón para cargar más comentarios -->
+  <div *ngIf="showLoadMore()" class="text-center mt-4">
+    <button 
+      class="btn btn-outline-dark"
+      (click)="nextPage()"
+    >
+      Mostrar más reseñas
+      <i class="bi bi-chevron-down ms-2"></i>
+    </button>
+  </div>
+
+
+</div>

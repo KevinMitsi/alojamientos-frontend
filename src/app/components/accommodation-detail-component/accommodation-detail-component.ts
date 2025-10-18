@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { AccommodationService } from '../../services/accommodation';
 import { AccommodationDTO } from '../../models/accommodation.model';
+import { CommentListComponent } from '../comment/comment';
 
 @Component({
   selector: 'app-accommodation-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, CommentListComponent],
   templateUrl: './accommodation-detail-component.html',
   styleUrl: './accommodation-detail-component.css'
 })
