@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, input } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-accommodation-card',
   standalone: true,
@@ -12,13 +12,12 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 export class AccommodationCardComponent {
   accommodation = input.required<{ id: number; title: string; pricePerNight: number; avgRating: number; imageUrl: string }>();
 
+constructor(private router: Router) {}
 
  // Método que se ejecuta cuando se hace clic en la card
   openDetail(): void {
-    const id = this.accommodation().id;
-    // window.open abre una nueva pestaña del navegador
-    // El primer parámetro es la URL, el segundo '_blank' indica nueva pestaña
-    window.open(`/accommodation/${id}`, '_blank'); 
+   const id = this.accommodation().id;
+    this.router.navigate(['/accommodation', id]);
 }
 
 

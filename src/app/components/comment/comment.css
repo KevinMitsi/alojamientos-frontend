@@ -1,0 +1,140 @@
+/* Contenedor de comentarios */
+.comments-section {
+  padding: 2rem 0;
+}
+
+/* Card de comentario */
+.comment-card {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid #ebebeb;
+}
+
+.comment-card:last-child {
+  border-bottom: none;
+}
+
+/* Avatar circular */
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.avatar-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* Nombre del usuario */
+.comment-card h6 {
+  font-size: 16px;
+  color: #222;
+}
+
+/* Estrellas */
+.stars {
+  color: #ffc107;
+  font-size: 14px;
+}
+
+.stars .bi-star,
+.stars .bi-star-fill {
+  margin-right: 2px;
+}
+
+/* Texto del comentario */
+.comment-text {
+  color: #222;
+  line-height: 1.6;
+  margin-top: 0.5rem;
+  font-size: 15px;
+}
+
+/* Respuesta del anfitrión */
+.host-reply {
+  background-color: #f7f7f7;
+  border-radius: 8px;
+  border-left: 3px solid #0d6efd;
+}
+
+.host-reply strong {
+  color: #0d6efd;
+}
+
+.host-reply p {
+  color: #484848;
+  line-height: 1.5;
+}
+
+/* Botón "Mostrar más" */
+.btn-outline-dark {
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-outline-dark:hover {
+  background-color: #f7f7f7;
+  transform: translateY(-2px);
+}
+
+/* Spinner de carga */
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .comment-card {
+    padding: 1rem 0;
+  }
+
+  .avatar,
+  .avatar-img {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .comment-text {
+    font-size: 14px;
+  }
+
+  .host-reply {
+    padding: 0.75rem !important;
+  }
+}
+
+/* Animación suave al cargar */
+.comment-card {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estado vacío */
+.text-center.text-muted .bi-chat-dots {
+  opacity: 0.3;
+}
