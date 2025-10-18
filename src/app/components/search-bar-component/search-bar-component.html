@@ -1,0 +1,36 @@
+<form [formGroup]="form" class="d-flex align-items-center justify-content-center gap-1 p-3 bg-white rounded-4 shadow-sm border border-warning-subtle" (ngSubmit)="submit()">
+  <div class="input-group">
+    <span class="input-group-text bg-white border-0">
+      <i class="bi bi-building"></i>
+    </span>
+    <input type="text" class="form-control border-0" formControlName="city" placeholder="¿A dónde vas?" />
+  </div>
+
+  <div class="input-group date-group">
+    <span class="input-group-text bg-white border-0">
+      <i class="bi bi-calendar"></i>
+    </span>
+    <div class="date-inputs">
+      <div class="date-wrapper">
+        <label class="date-label">Check-in</label>
+        <input type="date" class="form-control border-0" formControlName="startDate" [min]="minDate" />
+      </div>
+      <div class="date-wrapper">
+        <label class="date-label">Check-out</label>
+        <input type="date" class="form-control border-0" formControlName="endDate" [min]="minDate" />
+      </div>
+    </div>
+  </div>
+
+  <div class="input-group">
+    <span class="input-group-text bg-white border-0">
+      <i class="bi bi-person"></i>
+    </span>
+    <div class="date-wrapper">
+      <label class="date-label">Número de Huespedes</label>
+      <input type="number" class="form-control border-0" formControlName="guests" min="1" placeholder="Número de huéspedes" />
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary px-4 rounded-4">Buscar</button>
+</form>
