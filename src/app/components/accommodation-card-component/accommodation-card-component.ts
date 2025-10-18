@@ -10,5 +10,16 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AccommodationCardComponent {
-  accommodation = input.required<{ title: string; pricePerNight: number; avgRating: number; imageUrl: string }>();
+  accommodation = input.required<{ id: number; title: string; pricePerNight: number; avgRating: number; imageUrl: string }>();
+
+
+ // Método que se ejecuta cuando se hace clic en la card
+  openDetail(): void {
+    const id = this.accommodation().id;
+    // window.open abre una nueva pestaña del navegador
+    // El primer parámetro es la URL, el segundo '_blank' indica nueva pestaña
+    window.open(`/accommodation/${id}`, '_blank'); 
+}
+
+
 }

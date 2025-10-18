@@ -1,4 +1,10 @@
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden"
+
+ (click)="openDetail()" 
+  style="cursor: pointer"
+  role="button"
+  tabindex="0"
+>
   <div class="card-img-wrapper">
     <img [ngSrc]="accommodation().imageUrl" fill class="w-100" alt="Alojamiento" priority />
   </div>
