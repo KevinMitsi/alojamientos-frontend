@@ -30,9 +30,9 @@ export class MainPage {
     this.loading.set(true);
 
       const searchCriteria: AccommodationSearchCriteria = {} as AccommodationSearchCriteria;
-      const parsedCity = Number(criteria.city);
-      if (!Number.isNaN(parsedCity) && parsedCity > 0) {
-        searchCriteria.cityId = parsedCity;
+      // Usar el nombre de la ciudad directamente
+      if (criteria.city && criteria.city.trim() !== '') {
+        searchCriteria.cityName = criteria.city.trim();
       }
       if (criteria.startDate) searchCriteria.startDate = criteria.startDate;
       if (criteria.endDate) searchCriteria.endDate = criteria.endDate;

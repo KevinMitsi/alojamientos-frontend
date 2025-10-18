@@ -90,7 +90,7 @@ export interface AccommodationFoundDTO {
 
 // Criterios de búsqueda
 export interface AccommodationSearchCriteria {
-  cityId?: number;
+  cityName?: string;
   startDate?: string; // formato: YYYY-MM-DD
   endDate?: string; // formato: YYYY-MM-DD
   guests?: number;

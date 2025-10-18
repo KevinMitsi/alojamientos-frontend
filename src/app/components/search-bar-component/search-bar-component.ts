@@ -1,6 +1,7 @@
-import { Component, ChangeDetectionStrategy, computed, signal, inject, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, signal, inject, output, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { AccommodationService } from '../../services/accommodation';
 
 // Lista de servicios disponibles
 export interface ServiceOption {
@@ -16,8 +17,9 @@ export interface ServiceOption {
   styleUrl: './search-bar-component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SearchBarComponent {
+export class SearchBarComponent implements OnInit {
   private fb = inject(FormBuilder);
+  private accommodationService = inject(AccommodationService);
 
   // Control para mostrar/ocultar búsqueda avanzada
   showAdvancedSearch = signal(false);
@@ -33,19 +35,8 @@ export class SearchBarComponent {
     services: [[] as string[]]
   });
 
-  // Lista de servicios disponibles
-  availableServices: ServiceOption[] = [
-    { value: 'WIFI', label: 'WiFi' },
-    { value: 'PARKING', label: 'Estacionamiento' },
-    { value: 'POOL', label: 'Piscina' },
-    { value: 'GYM', label: 'Gimnasio' },
-    { value: 'BREAKFAST', label: 'Desayuno' },
-    { value: 'AIR_CONDITIONING', label: 'Aire Acondicionado' },
-    { value: 'KITCHEN', label: 'Cocina' },
-    { value: 'PETS_ALLOWED', label: 'Se aceptan mascotas' },
-    { value: 'TV', label: 'TV' },
-    { value: 'WASHING_MACHINE', label: 'Lavadora' }
-  ];
+  // Lista de servicios disponibles - ahora es un signal
+  availableServices = signal<ServiceOption[]>([]);
 
   criteria = signal(this.form.value);
   criteriaDisplay = computed(() => `${this.criteria().city} ${this.criteria().startDate} - ${this.criteria().endDate}`);
@@ -59,6 +50,29 @@ export class SearchBarComponent {
     maxPrice?: number | null;
     services?: string[];
   }>();
+
+  ngOnInit(): void {
+    // Cargar servicios al inicializar el componente
+    this.loadServices();
+  }
+
+  loadServices(): void {
+    this.accommodationService.getAvailableServices().subscribe({
+      next: (services) => {
+        // Convertir array de strings a ServiceOption[]
+        const serviceOptions = services.map(service => ({
+          value: service,
+          label: service
+        }));
+        this.availableServices.set(serviceOptions);
+      },
+      error: (error) => {
+        console.error('Error al cargar servicios:', error);
+        // En caso de error, usar una lista vacía o valores por defecto
+        this.availableServices.set([]);
+      }
+    });
+  }
 
   // Fecha mínima (hoy)
   get minDate(): string {

@@ -83,7 +83,7 @@
             <i class="bi bi-gear"></i> Servicios
           </label>
           <div class="services-grid">
-            @for (service of availableServices; track service.value) {
+            @for (service of availableServices(); track service.value) {
               <div class="form-check service-item">
                 <input 
                   class="form-check-input" 
