@@ -15,7 +15,7 @@ import { AccommodationSearchCriteria } from '../../models/accommodation.model';
 })
 export class MainPage {
   private accommodationService = inject(AccommodationService);
-  accommodations = signal<{ title: string; pricePerNight: number; avgRating: number; imageUrl: string }[]>([]);
+  accommodations = signal<{ id: number; title: string; pricePerNight: number; avgRating: number; imageUrl: string }[]>([]);
   loading = signal(false);
 
   onSearch(criteria: { city: string; startDate: string; endDate: string; guests: number }) {
@@ -35,6 +35,7 @@ export class MainPage {
         next: (response) => {
           this.accommodations.set(
             response.content.map(accommodation => ({
+              id: accommodation.id,
               title: accommodation.title,
               pricePerNight: accommodation.pricePerNight ?? 0,
               avgRating: accommodation.avgRating,
