@@ -1,36 +1,112 @@
-<form [formGroup]="form" class="d-flex align-items-center justify-content-center gap-1 p-3 bg-white rounded-4 shadow-sm border border-warning-subtle" (ngSubmit)="submit()">
-  <div class="input-group">
-    <span class="input-group-text bg-white border-0">
-      <i class="bi bi-building"></i>
-    </span>
-    <input type="text" class="form-control border-0" formControlName="city" placeholder="¿A dónde vas?" />
-  </div>
+<form [formGroup]="form" class="d-flex flex-column align-items-center justify-content-center gap-1 p-3 bg-white rounded-4 shadow-sm border border-warning-subtle" (ngSubmit)="submit()">
+  <!-- Barra de búsqueda principal -->
+  <div class="d-flex align-items-center justify-content-center gap-1 w-100">
+    <div class="input-group">
+      <span class="input-group-text bg-white border-0">
+        <i class="bi bi-building"></i>
+      </span>
+      <input type="text" class="form-control border-0" formControlName="city" placeholder="¿A dónde vas?" />
+    </div>
 
-  <div class="input-group date-group">
-    <span class="input-group-text bg-white border-0">
-      <i class="bi bi-calendar"></i>
-    </span>
-    <div class="date-inputs">
-      <div class="date-wrapper">
-        <label class="date-label">Check-in</label>
-        <input type="date" class="form-control border-0" formControlName="startDate" [min]="minDate" />
-      </div>
-      <div class="date-wrapper">
-        <label class="date-label">Check-out</label>
-        <input type="date" class="form-control border-0" formControlName="endDate" [min]="minDate" />
+    <div class="input-group date-group">
+      <span class="input-group-text bg-white border-0">
+        <i class="bi bi-calendar"></i>
+      </span>
+      <div class="date-inputs">
+        <div class="date-wrapper">
+          <label class="date-label">Check-in</label>
+          <input type="date" class="form-control border-0" formControlName="startDate" [min]="minDate" />
+        </div>
+        <div class="date-wrapper">
+          <label class="date-label">Check-out</label>
+          <input type="date" class="form-control border-0" formControlName="endDate" [min]="minDate" />
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="input-group">
-    <span class="input-group-text bg-white border-0">
-      <i class="bi bi-person"></i>
-    </span>
-    <div class="date-wrapper">
-      <label class="date-label">Número de Huespedes</label>
-      <input type="number" class="form-control border-0" formControlName="guests" min="1" placeholder="Número de huéspedes" />
+    <div class="input-group">
+      <span class="input-group-text bg-white border-0">
+        <i class="bi bi-person"></i>
+      </span>
+      <div class="date-wrapper">
+        <label class="date-label">Número de Huespedes</label>
+        <input type="number" class="form-control border-0" formControlName="guests" min="1" placeholder="Número de huéspedes" />
+      </div>
     </div>
+
+    <button type="submit" class="btn btn-primary px-4 rounded-4">Buscar</button>
   </div>
 
-  <button type="submit" class="btn btn-primary px-4 rounded-4">Buscar</button>
+  <!-- Botón de búsqueda avanzada -->
+  <div class="w-100 d-flex justify-content-center mt-2">
+    <button type="button" class="btn btn-link text-decoration-none advanced-search-toggle" (click)="toggleAdvancedSearch()">
+      <i class="bi" [ngClass]="showAdvancedSearch() ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+      Búsqueda avanzada
+    </button>
+  </div>
+
+  <!-- Panel de búsqueda avanzada -->
+  @if (showAdvancedSearch()) {
+    <div class="advanced-search-panel w-100 mt-3 p-3 border-top">
+      <div class="row g-3">
+        <!-- Rango de precio -->
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-currency-dollar"></i> Rango de precio
+          </label>
+          <div class="d-flex gap-2 align-items-center">
+            <div class="flex-fill">
+              <input 
+                type="number" 
+                class="form-control" 
+                formControlName="minPrice" 
+                placeholder="Precio mínimo"
+                min="0"
+              />
+            </div>
+            <span class="text-muted">-</span>
+            <div class="flex-fill">
+              <input 
+                type="number" 
+                class="form-control" 
+                formControlName="maxPrice" 
+                placeholder="Precio máximo"
+                min="0"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Servicios -->
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-gear"></i> Servicios
+          </label>
+          <div class="services-grid">
+            @for (service of availableServices(); track service.value) {
+              <div class="form-check service-item">
+                <input 
+                  class="form-check-input" 
+                  type="checkbox" 
+                  [id]="'service-' + service.value"
+                  [checked]="isServiceSelected(service.value)"
+                  (change)="toggleService(service.value)"
+                />
+                <label class="form-check-label" [for]="'service-' + service.value">
+                  {{ service.label }}
+                </label>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón para limpiar filtros avanzados -->
+      <div class="d-flex justify-content-end mt-3">
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="clearAdvancedFilters()">
+          <i class="bi bi-x-circle"></i> Limpiar filtros avanzados
+        </button>
+      </div>
+    </div>
+  }
 </form>
