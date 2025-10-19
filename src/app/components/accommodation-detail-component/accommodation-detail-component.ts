@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { AccommodationService } from '../../services/accommodation';
+import { AccommodationService } from '../../services/accommodation.service';
 import { AccommodationDTO } from '../../models/accommodation.model';
 import { CommentListComponent } from '../comment/comment';
 
@@ -25,6 +25,12 @@ export class AccommodationDetailComponent implements OnInit {
   checkInDate = signal<string>('');
   checkOutDate = signal<string>('');
   guests = signal<number>(1);
+
+  // Estados del Toast
+  showToast = signal<boolean>(false);
+  toastType = signal<'success' | 'error'>('success');
+  toastTitle = signal<string>('');
+  toastMessage = signal<string>('');
 
   // Fecha mínima (hoy)
   minDate = computed(() => {
@@ -147,12 +153,12 @@ export class AccommodationDetailComponent implements OnInit {
   onReserve(): void {
     const acc = this.accommodation();
     if (!acc || !this.checkInDate() || !this.checkOutDate()) {
-      alert('Por favor, completa todos los campos');
+      this.showToastMessage('error', 'Error', 'Por favor, completa todos los campos');
       return;
     }
 
     if (this.totalNights() < 1) {
-      alert('La reserva debe ser de al menos 1 noche');
+      this.showToastMessage('error', 'Error', 'La reserva debe ser de al menos 1 noche');
       return;
     }
 
@@ -167,6 +173,47 @@ export class AccommodationDetailComponent implements OnInit {
     };
 
     console.log('Datos de reserva:', reservationData);
-    alert(`Reserva confirmada!\n\nAlojamiento: ${acc.title}\nCheck-in: ${this.checkInDate()}\nCheck-out: ${this.checkOutDate()}\nHuéspedes: ${this.guests()}\nNoches: ${this.totalNights()}\nTotal: ${this.totalPrice()} COP`);
+    
+    // Mostrar toast de éxito
+    const message = `Alojamiento: ${acc.title}\nCheck-in: ${this.formatDateForDisplay(this.checkInDate())}\nCheck-out: ${this.formatDateForDisplay(this.checkOutDate())}\nHuéspedes: ${this.guests()}\nNoches: ${this.totalNights()}\nTotal: ${this.formatCurrency(this.totalPrice())}`;
+    this.showToastMessage('success', '¡Reserva Confirmada!', message);
+  }
+
+  // Método para mostrar toast
+  showToastMessage(type: 'success' | 'error', title: string, message: string): void {
+    this.toastType.set(type);
+    this.toastTitle.set(title);
+    this.toastMessage.set(message);
+    this.showToast.set(true);
+
+    // Auto-cerrar después de 5 segundos
+    setTimeout(() => {
+      this.closeToast();
+    }, 5000);
+  }
+
+  // Método para cerrar toast
+  closeToast(): void {
+    this.showToast.set(false);
+  }
+
+  // Método para formatear fecha para visualización
+  private formatDateForDisplay(dateString: string): string {
+    const date = new Date(dateString);
+    const options: Intl.DateTimeFormatOptions = { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
+    return date.toLocaleDateString('es-ES', options);
+  }
+
+  // Método para formatear moneda
+  private formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0
+    }).format(amount);
   }
 }

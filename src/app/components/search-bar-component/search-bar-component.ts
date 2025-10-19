@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, computed, signal, inject, output, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { AccommodationService } from '../../services/accommodation';
+import { AccommodationService } from '../../services/accommodation.service';
 
 // Lista de servicios disponibles
 export interface ServiceOption {

@@ -64,18 +64,47 @@ export class CommentListComponent implements OnInit {
 
     const date = new Date(dateString);
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    const diffWeeks = Math.ceil(diffDays / 7);
-    const diffMonths = Math.ceil(diffDays / 30);
+    const diffTime = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const diffWeeks = Math.floor(diffDays / 7);
+    const diffMonths = Math.floor(diffDays / 30);
+    const diffYears = Math.floor(diffDays / 365);
 
+    // Si es del mismo día
+    if (diffDays === 0) {
+      const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+      if (diffHours === 0) {
+        const diffMinutes = Math.floor(diffTime / (1000 * 60));
+        if (diffMinutes < 1) return 'Hace un momento';
+        return `Hace ${diffMinutes} ${diffMinutes === 1 ? 'minuto' : 'minutos'}`;
+      }
+      return `Hace ${diffHours} ${diffHours === 1 ? 'hora' : 'horas'}`;
+    }
+    
+    // Si es de hace menos de una semana
     if (diffDays < 7) {
       return `Hace ${diffDays} ${diffDays === 1 ? 'día' : 'días'}`;
-    } else if (diffWeeks < 4) {
+    }
+    
+    // Si es de hace menos de un mes
+    if (diffWeeks < 4) {
       return `Hace ${diffWeeks} ${diffWeeks === 1 ? 'semana' : 'semanas'}`;
-    } else {
+    }
+    
+    // Si es de hace menos de un año
+    if (diffMonths < 12) {
       return `Hace ${diffMonths} ${diffMonths === 1 ? 'mes' : 'meses'}`;
     }
+    
+    // Si es de hace más de un año
+    if (diffYears === 1) {
+      return 'Hace 1 año';
+    }
+    
+    // Si es de hace muchos años, mostrar la fecha completa
+    const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
+                    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    return `${months[date.getMonth()]} de ${date.getFullYear()}`;
   }
 
   // Método para obtener iniciales del nombre
@@ -112,3 +141,4 @@ export class CommentListComponent implements OnInit {
     return !this.loading() && this.currentPage() < this.totalPages() - 1;
   }
 }
+  

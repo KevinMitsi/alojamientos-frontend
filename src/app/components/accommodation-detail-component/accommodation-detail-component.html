@@ -1,19 +1,24 @@
 <div class="container py-5">
   <!-- Estado de carga -->
-  <div *ngIf="loading()" class="text-center py-5">
-    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-      <span class="visually-hidden">Cargando...</span>
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Estado de error -->
-  <div *ngIf="error()" class="alert alert-danger" role="alert">
-    <h4 class="alert-heading">¡Oops!</h4>
-    <p>{{ error() }}</p>
-  </div>
+  @if (error()) {
+    <div class="alert alert-danger" role="alert">
+      <h4 class="alert-heading">¡Oops!</h4>
+      <p>{{ error() }}</p>
+    </div>
+  }
 
   <!-- Contenido del detalle -->
-  <div *ngIf="!loading() && !error() && accommodation()" class="row">
+  @if (!loading() && !error() && accommodation()) {
+    <div class="row">
     <div class="col-lg-8">
       <!-- Galería de imágenes -->
       <div class="card mb-4 border-0 shadow-sm">
@@ -25,17 +30,20 @@
         >
         
         <!-- Miniaturas de imágenes adicionales -->
-        <div class="card-body" *ngIf="accommodation()!.images.length > 1">
-          <div class="d-flex gap-2 overflow-auto">
-            <img 
-              *ngFor="let image of accommodation()!.images" 
-              [src]="image.thumbnailUrl || image.url" 
-              [alt]="accommodation()!.title"
-              class="rounded"
-              style="width: 100px; height: 75px; object-fit: cover; cursor: pointer;"
-            >
+        @if (accommodation()!.images.length > 1) {
+          <div class="card-body">
+            <div class="d-flex gap-2 overflow-auto">
+              @for (image of accommodation()!.images; track image.id) {
+                <img 
+                  [src]="image.thumbnailUrl || image.url" 
+                  [alt]="accommodation()!.title"
+                  class="rounded"
+                  style="width: 100px; height: 75px; object-fit: cover; cursor: pointer;"
+                >
+              }
+            </div>
           </div>
-        </div>
+        }
       </div>
 
       <!-- Información del alojamiento -->
@@ -46,10 +54,9 @@
           <!-- Rating -->
           <div class="mb-3">
             <span class="text-warning fs-5">
-              <i 
-                *ngFor="let filled of getStarsArray()" 
-                [class]="filled ? 'bi bi-star-fill' : 'bi bi-star'"
-              ></i>
+              @for (filled of getStarsArray(); track $index) {
+                <i [class]="filled ? 'bi bi-star-fill' : 'bi bi-star'"></i>
+              }
             </span>
             <span class="ms-2 text-muted">
               {{ accommodation()!.avgRating | number:'1.1-1' }} 
@@ -70,12 +77,11 @@
           <!-- Servicios -->
           <h5 class="mb-3 mt-4">Servicios</h5>
           <div class="d-flex flex-wrap gap-2">
-            <span 
-              *ngFor="let service of accommodation()!.services" 
-              class="badge bg-primary-subtle text-primary-emphasis fs-6"
-            >
-              {{ service }}
-            </span>
+            @for (service of accommodation()!.services; track $index) {
+              <span class="badge bg-primary-subtle text-primary-emphasis fs-6">
+                {{ service }}
+              </span>
+            }
           </div>
         </div>
       </div>
@@ -142,9 +148,11 @@
                     [value]="guests()"
                     (change)="onGuestsChange($event)"
                   >
-                    <option *ngFor="let n of getGuestOptions()" [value]="n">
-                      {{ n }} {{ n === 1 ? 'huésped' : 'huéspedes' }}
-                    </option>
+                    @for (n of getGuestOptions(); track n) {
+                      <option [value]="n">
+                        {{ n }} {{ n === 1 ? 'huésped' : 'huéspedes' }}
+                      </option>
+                    }
                   </select>
                 </div>
               </div>
@@ -165,20 +173,43 @@
           </p>
 
           <!-- Desglose de precios -->
-          <div class="border-top pt-3" *ngIf="checkInDate() && checkOutDate() && totalNights() > 0">
-            <div class="d-flex justify-content-between mb-2">
-              <span class="text-decoration-underline">
-                {{ accommodation()!.pricePerNight | currency:'COP':'symbol':'1.0-0' }} x {{ totalNights() }} {{ totalNights() === 1 ? 'noche' : 'noches' }}
-              </span>
-              <span>{{ totalPrice() | currency:'COP':'symbol':'1.0-0' }}</span>
+          @if (checkInDate() && checkOutDate() && totalNights() > 0) {
+            <div class="border-top pt-3">
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-decoration-underline">
+                  {{ accommodation()!.pricePerNight | currency:'COP':'symbol':'1.0-0' }} x {{ totalNights() }} {{ totalNights() === 1 ? 'noche' : 'noches' }}
+                </span>
+                <span>{{ totalPrice() | currency:'COP':'symbol':'1.0-0' }}</span>
+              </div>
+              <div class="d-flex justify-content-between border-top pt-3">
+                <span class="fw-bold">Total</span>
+                <span class="fw-bold">{{ totalPrice() | currency:'COP':'symbol':'1.0-0' }}</span>
+              </div>
             </div>
-            <div class="d-flex justify-content-between border-top pt-3">
-              <span class="fw-bold">Total</span>
-              <span class="fw-bold">{{ totalPrice() | currency:'COP':'symbol':'1.0-0' }}</span>
-            </div>
-          </div>
+          }
         </div>
       </div>
     </div>
-  </div>
+    </div>
+  }
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11000">
+  @if (showToast()) {
+    <div class="toast show" role="alert" [class.bg-success]="toastType() === 'success'" [class.bg-danger]="toastType() === 'error'">
+      <div class="toast-header text-white" [class.bg-success]="toastType() === 'success'" [class.bg-danger]="toastType() === 'error'">
+        @if (toastType() === 'success') {
+          <i class="bi bi-check-circle-fill me-2"></i>
+        } @else {
+          <i class="bi bi-exclamation-circle-fill me-2"></i>
+        }
+        <strong class="me-auto">{{ toastTitle() }}</strong>
+        <button type="button" class="btn-close btn-close-white" (click)="closeToast()"></button>
+      </div>
+      <div class="toast-body text-white">
+        {{ toastMessage() }}
+      </div>
+    </div>
+  }
 </div>
