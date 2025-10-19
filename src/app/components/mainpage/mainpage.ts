@@ -18,17 +18,36 @@ export class MainPage {
   accommodations = signal<{ id: number; title: string; pricePerNight: number; avgRating: number; imageUrl: string }[]>([]);
   loading = signal(false);
 
-  onSearch(criteria: { city: string; startDate: string; endDate: string; guests: number }) {
+  onSearch(criteria: {
+    city: string;
+    startDate: string;
+    endDate: string;
+    guests: number;
+    minPrice?: number | null;
+    maxPrice?: number | null;
+    services?: string[];
+  }) {
     this.loading.set(true);
 
       const searchCriteria: AccommodationSearchCriteria = {} as AccommodationSearchCriteria;
-      const parsedCity = Number(criteria.city);
-      if (!Number.isNaN(parsedCity) && parsedCity > 0) {
-        searchCriteria.cityId = parsedCity;
+      // Usar el nombre de la ciudad directamente
+      if (criteria.city && criteria.city.trim() !== '') {
+        searchCriteria.cityName = criteria.city.trim();
       }
       if (criteria.startDate) searchCriteria.startDate = criteria.startDate;
       if (criteria.endDate) searchCriteria.endDate = criteria.endDate;
       if (typeof criteria.guests === 'number' && criteria.guests > 0) searchCriteria.guests = criteria.guests;
+      
+      // Agregar parámetros de búsqueda avanzada
+      if (criteria.minPrice !== null && criteria.minPrice !== undefined && criteria.minPrice > 0) {
+        searchCriteria.minPrice = criteria.minPrice;
+      }
+      if (criteria.maxPrice !== null && criteria.maxPrice !== undefined && criteria.maxPrice > 0) {
+        searchCriteria.maxPrice = criteria.maxPrice;
+      }
+      if (criteria.services && criteria.services.length > 0) {
+        searchCriteria.services = criteria.services;
+      }
 
     this.accommodationService.search(searchCriteria, 0, 10)
       .subscribe({

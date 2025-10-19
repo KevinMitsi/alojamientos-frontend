@@ -50,8 +50,8 @@ export class AccommodationService {
       .set('size', size.toString());
 
     // Solo incluir filtros cuando tengan valores válidos
-    if (typeof criteria.cityId === 'number' && Number.isFinite(criteria.cityId) && criteria.cityId > 0) {
-      params = params.set('cityId', criteria.cityId.toString());
+    if (criteria.cityName && criteria.cityName.trim() !== '') {
+      params = params.set('cityName', criteria.cityName.trim());
     }
 
     if (criteria.startDate) {
@@ -154,5 +154,12 @@ export class AccommodationService {
    */
   findById(accommodationId: number): Observable<AccommodationDTO> {
     return this.http.get<AccommodationDTO>(`${this.baseUrl}/${accommodationId}`);
+  }
+
+  /**
+   * Obtener todos los servicios disponibles (público)
+   */
+  getAvailableServices(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}/services`);
   }
 }
