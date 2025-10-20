@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { SearchBarComponent } from '../search-bar-component/search-bar-component';
 import { AccommodationCardComponent } from '../accommodation-card-component/accommodation-card-component';
-import { AccommodationService } from '../../services/accommodation';
+import { AccommodationService } from '../../services/accommodation.service';
 import { AccommodationSearchCriteria } from '../../models/accommodation.model';
 
 @Component({

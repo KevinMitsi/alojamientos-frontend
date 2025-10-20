@@ -1,7 +1,7 @@
 export interface ReplyHostDTO{
 hostId: number;
 text: string;
-startDate?: string;
+createdAt?: string;
 
 }
 
@@ -9,7 +9,7 @@ export interface CommentDTO {
   id: number;
   rating: number;
   text: string;
-  startDate?: string;
+  createdAt?: string;
   isModerated: boolean;
   reservationId: number;
   accommodationId: number;
