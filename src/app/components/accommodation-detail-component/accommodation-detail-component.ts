@@ -113,24 +113,29 @@ private mapService = inject(MapService);
   }
 
   private initializeMapWhenReady(): void {
-    // Evitar inicializar múltiples veces
-    if (this.mapInitialized()) return;
-    
-    // Verificar que el contenedor exista y que los datos estén cargados
-    if (!this.loading() && this.accommodation() && !this.error()) {
-      // Usar setTimeout para asegurar que el DOM esté completamente renderizado
-      setTimeout(() => {
-        const mapContainer = document.getElementById('map');
-        if (mapContainer) {
-          this.mapService.create('map');
-          this.mapInitialized.set(true);
-          
-          // Si tienes coordenadas del alojamiento, puedes centrar el mapa
-          // this.centerMapOnAccommodation();
-        }
-      }, 100);
-    }
+  if (this.mapInitialized()) return;
+  
+  if (!this.loading() && this.accommodation() && !this.error()) {
+    setTimeout(() => {
+      const mapContainer = document.getElementById('map');
+      if (mapContainer) {
+        const acc = this.accommodation()!;
+        
+        // Crear el mapa centrado en las coordenadas del alojamiento
+        this.mapService.create('map', acc.coordinates, 15);
+        
+        // Agregar marcador en la ubicación
+        this.mapService.addMarker(
+          acc.coordinates,
+          acc.title,
+          `${acc.address}, ${acc.city.name}`
+        );
+        
+        this.mapInitialized.set(true);
+      }
+    }, 100);
   }
+}
 
   // Método para obtener la imagen principal
   getPrimaryImage(): string {
