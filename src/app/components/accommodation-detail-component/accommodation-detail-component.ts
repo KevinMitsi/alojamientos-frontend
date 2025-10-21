@@ -1,10 +1,10 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed,AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { AccommodationService } from '../../services/accommodation.service';
 import { AccommodationDTO } from '../../models/accommodation.model';
 import { CommentListComponent } from '../comment/comment';
-
+import { MapService } from '../../services/map-service';
 @Component({
   selector: 'app-accommodation-detail',
   standalone: true,
@@ -12,9 +12,12 @@ import { CommentListComponent } from '../comment/comment';
   templateUrl: './accommodation-detail-component.html',
   styleUrl: './accommodation-detail-component.css'
 })
-export class AccommodationDetailComponent implements OnInit {
+export class AccommodationDetailComponent implements OnInit,AfterViewInit {
   private route = inject(ActivatedRoute);
   private accommodationService = inject(AccommodationService);
+private mapService = inject(MapService);
+  
+  private mapInitialized = signal(false);
 
   // Datos del alojamiento
   accommodation = signal<AccommodationDTO | null>(null);
@@ -67,6 +70,7 @@ export class AccommodationDetailComponent implements OnInit {
   });
 
   ngOnInit(): void {
+     
     const id = this.route.snapshot.paramMap.get('id');
     
     if (!id) {
@@ -90,6 +94,7 @@ export class AccommodationDetailComponent implements OnInit {
           // Inicializar huéspedes con 1, pero no más de la capacidad máxima
           this.guests.set(Math.min(1, data.maxGuests));
           this.loading.set(false);
+           this.initializeMapWhenReady();
         },
         error: (err) => {
           console.error('Error al cargar alojamiento:', err);
@@ -97,6 +102,34 @@ export class AccommodationDetailComponent implements OnInit {
           this.loading.set(false);
         }
       });
+ 
+      
+  }
+
+
+  ngAfterViewInit(): void {
+    // Intentar inicializar el mapa si los datos ya están cargados
+    this.initializeMapWhenReady();
+  }
+
+  private initializeMapWhenReady(): void {
+    // Evitar inicializar múltiples veces
+    if (this.mapInitialized()) return;
+    
+    // Verificar que el contenedor exista y que los datos estén cargados
+    if (!this.loading() && this.accommodation() && !this.error()) {
+      // Usar setTimeout para asegurar que el DOM esté completamente renderizado
+      setTimeout(() => {
+        const mapContainer = document.getElementById('map');
+        if (mapContainer) {
+          this.mapService.create('map');
+          this.mapInitialized.set(true);
+          
+          // Si tienes coordenadas del alojamiento, puedes centrar el mapa
+          // this.centerMapOnAccommodation();
+        }
+      }, 100);
+    }
   }
 
   // Método para obtener la imagen principal

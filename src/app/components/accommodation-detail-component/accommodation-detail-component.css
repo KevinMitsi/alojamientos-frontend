@@ -184,3 +184,7 @@ select.form-select:focus {
 .toast-container {
   z-index: 11000;
 }
+#map {
+    width: 50vw;
+    height: 50vh;
+}
