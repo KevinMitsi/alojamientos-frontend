@@ -1,56 +1,96 @@
-<form [formGroup]="form" class="container py-4 d-flex flex-column align-items-center justify-content-center gap-3 bg-white rounded-4 shadow-sm border border-warning-subtle" (ngSubmit)="submit()">
-	<h2 class="mb-3 fw-bold text-primary">Iniciar Sesión</h2>
-	<div class="w-100" style="max-width:400px;">
-		<div class="mb-3">
-			<label for="email" class="form-label fw-semibold">
-				<i class="bi bi-envelope me-2"></i>Email
-			</label>
-			<input type="email" id="email" class="form-control border-0" formControlName="email" placeholder="Correo electrónico" [class.is-invalid]="email?.invalid && (email?.touched || email?.dirty)" maxlength="50" />
-					@if (email?.invalid && (email?.touched || email?.dirty)) {
-						<div class="invalid-feedback d-block">
-							@if (email?.errors?.['required']) {
-								<span>El correo es obligatorio.</span>
-							}
-							@if (email?.errors?.['email']) {
-								<span>Formato de correo inválido.</span>
-							}
-							@if (email?.errors?.['maxLength']) {
-								<span>Máximo 50 caracteres.</span>
-							}
-						</div>
-					}
-		</div>
-		<div class="mb-3">
-			<label for="password" class="form-label fw-semibold">
-				<i class="bi bi-lock me-2"></i>Contraseña
-			</label>
-			<input type="password" id="password" class="form-control border-0" formControlName="password" placeholder="Contraseña" [class.is-invalid]="password?.invalid && (password?.touched || password?.dirty)" minlength="8" maxlength="20" />
-					@if (password?.invalid && (password?.touched || password?.dirty)) {
-						<div class="invalid-feedback d-block">
-							@if (password?.errors?.['required']) {
-								<span>La contraseña es obligatoria.</span>
-							}
-							@if (password?.errors?.['minlength']) {
-								<span>Mínimo 8 caracteres.</span>
-							}
-							@if (password?.errors?.['maxlength']) {
-								<span>Máximo 20 caracteres.</span>
-							}
-						</div>
-					}
-		</div>
-			@if (errorMsg) {
-				<div class="alert alert-danger mt-2" role="alert">
-					<i class="bi bi-exclamation-triangle me-2"></i>{{ errorMsg }}
-				</div>
-			}
-			<button type="submit" class="btn btn-primary w-100 rounded-4" [disabled]="loading">
-				@if (!loading) {
-					<span>Ingresar</span>
-				}
-				@if (loading) {
-					<span><span class="spinner-border spinner-border-sm me-2"></span>Ingresando...</span>
-				}
-			</button>
-	</div>
+<form
+  [formGroup]="form"
+  class="login-card"
+  (ngSubmit)="submit()"
+>
+  <h2 class="text-center fw-bold mb-3">Inicio Sesión</h2>
+  <p class="text-center text-secondary mb-4">Ingresa tus credenciales</p>
+
+  <!-- EMAIL -->
+  <div class="form-group">
+    <label for="email" class="form-label">Correo electrónico</label>
+    <div class="input-container">
+      <i class="bi bi-envelope"></i>
+      <input
+        type="email"
+        id="email"
+        formControlName="email"
+        class="form-control"
+        placeholder="Correo electrónico"
+        [class.is-invalid]="email?.invalid && (email?.touched || email?.dirty)"
+        maxlength="50"
+      />
+    </div>
+    @if (email?.invalid && (email?.touched || email?.dirty)) {
+      <div class="invalid-feedback d-block">
+        @if (email?.errors?.['required']) {
+          <span>El correo es obligatorio.</span>
+        }
+        @if (email?.errors?.['email']) {
+          <span>Formato de correo inválido.</span>
+        }
+        @if (email?.errors?.['maxLength']) {
+          <span>Máximo 50 caracteres.</span>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- PASSWORD -->
+  <div class="form-group">
+    <label for="password" class="form-label">Contraseña</label>
+    <div class="input-container">
+      <i class="bi bi-lock"></i>
+      <input
+        type="password"
+        id="password"
+        formControlName="password"
+        class="form-control"
+        placeholder="Contraseña"
+        [class.is-invalid]="password?.invalid && (password?.touched || password?.dirty)"
+        minlength="8"
+        maxlength="20"
+      />
+    </div>
+    @if (password?.invalid && (password?.touched || password?.dirty)) {
+      <div class="invalid-feedback d-block">
+        @if (password?.errors?.['required']) {
+          <span>La contraseña es obligatoria.</span>
+        }
+        @if (password?.errors?.['minlength']) {
+          <span>Mínimo 8 caracteres.</span>
+        }
+        @if (password?.errors?.['maxlength']) {
+          <span>Máximo 20 caracteres.</span>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ERROR -->
+  @if (errorMsg) {
+    <div class="alert alert-danger mt-2" role="alert">
+      <i class="bi bi-exclamation-triangle me-2"></i>{{ errorMsg }}
+    </div>
+  }
+
+  <!-- BOTÓN -->
+  <button type="submit" class="btn-login" [disabled]="loading">
+    @if (!loading) {
+      <span>Ingresar</span>
+    }
+    @if (loading) {
+      <span><span class="spinner-border spinner-border-sm me-2"></span>Ingresando...</span>
+    }
+  </button>
+
+  <!-- LINKS -->
+  <div class="text-center mt-3">
+    <a href="#" class="text-primary text-decoration-none small">¿Olvidaste tu contraseña?</a>
+  </div>
+  <div class="text-center mt-2">
+    <span class="text-secondary small">¿No tienes cuenta?</span>
+   <a routerLink="/register" class="text-primary text-decoration-none fw-semibold">Registrarse</a>
+
+  </div>
 </form>
