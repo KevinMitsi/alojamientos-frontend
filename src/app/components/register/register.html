@@ -1,3 +1,6 @@
+<app-notification-component #notification></app-notification-component>
+
+
 <form [formGroup]="registerForm" class="login-card" (ngSubmit)="onSubmit()">
   <h2 class="mb-3 fw-bold text-primary text-center">Registro</h2>
   <p class="text-center text-muted mb-4">Crea tu cuenta</p>
@@ -112,11 +115,23 @@
     </div>
   }
 
-  <button type="submit" class="btn btn-primary w-100 rounded-4 mt-2">
+<button 
+  type="button" 
+  class="btn btn-primary w-100 rounded-4 mt-2" 
+  [disabled]="loading"
+  (click)="onSubmit()">
+  @if (!loading) {
     Registrarse
-  </button>
+  } @else {
+    Registrando...
+  }
+</button>
+
 
   <div class="text-center mt-3">
     <a href="/login" class="text-decoration-none text-primary fw-semibold">¿Ya tienes cuenta? Inicia sesión</a>
   </div>
 </form>
+
+
+

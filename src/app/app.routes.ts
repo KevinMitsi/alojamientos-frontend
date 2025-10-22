@@ -25,6 +25,8 @@ export const routes: Routes = [
   //Ruta para Register
   { path: 'register', component: Register },
 
+  
+
   // Ruta wildcard - redirige cualquier ruta no encontrada a la página principal
   {
     path: '**',
