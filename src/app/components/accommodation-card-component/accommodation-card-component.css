@@ -1,8 +1,26 @@
+
 .card-img-wrapper {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
   overflow: hidden;
+}
+
+.favorite-btn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: rgba(255,255,255,0.85);
+  border: none;
+  border-radius: 50%;
+  padding: 4px;
+  cursor: pointer;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: background 0.2s;
+}
+.favorite-btn:hover {
+  background: #ffe5e9;
 }
 
 .card-img-wrapper img {
