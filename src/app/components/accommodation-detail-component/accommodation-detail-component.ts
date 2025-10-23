@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal, computed,AfterViewInit } from '@angular/core';
+import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { AccommodationService } from '../../services/accommodation.service';
@@ -29,11 +30,7 @@ private mapService = inject(MapService);
   checkOutDate = signal<string>('');
   guests = signal<number>(1);
 
-  // Estados del Toast
-  showToast = signal<boolean>(false);
-  toastType = signal<'success' | 'error'>('success');
-  toastTitle = signal<string>('');
-  toastMessage = signal<string>('');
+  // Eliminado: Estados del Toast. Usaremos SweetAlert2
 
   // Fecha mínima (hoy)
   minDate = computed(() => {
@@ -52,7 +49,7 @@ private mapService = inject(MapService);
 
   // Calcular número de noches
   totalNights = computed(() => {
-    if (!this.checkInDate() || !this.checkOutDate()) return 0;
+    if (!this.checkInDate() || !this.checkOutDate()) return 1;
 
     const checkIn = new Date(this.checkInDate());
     const checkOut = new Date(this.checkOutDate());
@@ -191,12 +188,12 @@ private mapService = inject(MapService);
   onReserve(): void {
     const acc = this.accommodation();
     if (!acc || !this.checkInDate() || !this.checkOutDate()) {
-      this.showToastMessage('error', 'Error', 'Por favor, completa todos los campos');
+      this.showAlert('error', 'Error', 'Por favor, completa todos los campos');
       return;
     }
 
     if (this.totalNights() < 1) {
-      this.showToastMessage('error', 'Error', 'La reserva debe ser de al menos 1 noche');
+      this.showAlert('error', 'Error', 'La reserva debe ser de al menos 1 noche');
       return;
     }
 
@@ -212,27 +209,20 @@ private mapService = inject(MapService);
 
     console.log('Datos de reserva:', reservationData);
     
-    // Mostrar toast de éxito
+    // Mostrar SweetAlert de éxito
     const message = `Alojamiento: ${acc.title}\nCheck-in: ${this.formatDateForDisplay(this.checkInDate())}\nCheck-out: ${this.formatDateForDisplay(this.checkOutDate())}\nHuéspedes: ${this.guests()}\nNoches: ${this.totalNights()}\nTotal: ${this.formatCurrency(this.totalPrice())}`;
-    this.showToastMessage('success', '¡Reserva Confirmada!', message);
+    this.showAlert('success', '¡Reserva Confirmada!', message);
   }
 
-  // Método para mostrar toast
-  showToastMessage(type: 'success' | 'error', title: string, message: string): void {
-    this.toastType.set(type);
-    this.toastTitle.set(title);
-    this.toastMessage.set(message);
-    this.showToast.set(true);
-
-    // Auto-cerrar después de 5 segundos
-    setTimeout(() => {
-      this.closeToast();
-    }, 5000);
-  }
-
-  // Método para cerrar toast
-  closeToast(): void {
-    this.showToast.set(false);
+  // Método para mostrar SweetAlert
+  showAlert(type: 'success' | 'error', title: string, message: string): void {
+    Swal.fire({
+      icon: type,
+      title: title,
+      html: message.replace(/\n/g, '<br>'),
+      timer: 3500,
+      showConfirmButton: false
+    });
   }
 
   // Método para formatear fecha para visualización

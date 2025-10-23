@@ -31,7 +31,7 @@
         }
         @if (email?.errors?.['maxLength']) {
           <span>Máximo 50 caracteres.</span>
-        }
+        } 
       </div>
     }
   </div>
@@ -67,13 +67,6 @@
     }
   </div>
 
-  <!-- ERROR -->
-  @if (errorMsg) {
-    <div class="alert alert-danger mt-2" role="alert">
-      <i class="bi bi-exclamation-triangle me-2"></i>{{ errorMsg }}
-    </div>
-  }
-
   <!-- BOTÓN -->
   <button type="submit" class="btn-login" [disabled]="loading">
     @if (!loading) {
@@ -90,7 +83,6 @@
   </div>
   <div class="text-center mt-2">
     <span class="text-secondary small">¿No tienes cuenta?</span>
-   <a routerLink="/register" class="text-primary text-decoration-none fw-semibold">Registrarse</a>
-
+    <a routerLink="/register" class="text-primary text-decoration-none fw-semibold">Registrarse</a>
   </div>
 </form>
