@@ -1,27 +1,40 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, AfterViewInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ReactiveFormsModule } from '@angular/forms';
+import { Component } from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  AbstractControl,
+  ValidationErrors,
+  ReactiveFormsModule
+} from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { RegisterUserDTO } from '../../models/user.model';
 import { finalize } from 'rxjs/operators';
-import { NotificationComponent } from '../notification-component/notification-component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, RouterModule, NotificationComponent],
+  imports: [ReactiveFormsModule, CommonModule, RouterModule],
   templateUrl: './register.html',
   styleUrl: './register.css'
 })
-export class Register implements AfterViewInit {
+export class Register {
   registerForm: FormGroup;
-  errorMsg: string = '';
   loading = false;
-  
-  @ViewChild('notification', { static: false }) notification!: NotificationComponent;
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
+  // Toast (notificación)
+  showToast = false;
+  toastType: 'success' | 'error' = 'success';
+  toastMessage = '';
+  private submittedSuccessfully = false; // evita repetir onSubmit tras éxito
+
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router
+  ) {
     this.registerForm = this.fb.group(
       {
         name: ['', [Validators.required, Validators.maxLength(100)]],
@@ -35,17 +48,14 @@ export class Register implements AfterViewInit {
     );
   }
 
-  ngAfterViewInit() {
-    // Verifica que el componente esté disponible
-    console.log('NotificationComponent cargado:', this.notification);
-  }
-
+  // Validador personalizado
   passwordsMatchValidator(group: AbstractControl): ValidationErrors | null {
     const password = group.get('password')?.value;
     const confirmPassword = group.get('confirmPassword')?.value;
     return password === confirmPassword ? null : { mismatch: true };
   }
 
+  // Getters para los campos
   get name() { return this.registerForm.get('name'); }
   get phone() { return this.registerForm.get('phone'); }
   get email() { return this.registerForm.get('email'); }
@@ -53,90 +63,85 @@ export class Register implements AfterViewInit {
   get password() { return this.registerForm.get('password'); }
   get confirmPassword() { return this.registerForm.get('confirmPassword'); }
 
- onSubmit(): void {
-  console.log('🔥 onSubmit() EJECUTADO');
-  console.log('Form válido:', this.registerForm.valid);
-  console.log('Form value:', this.registerForm.value);
+  // Mostrar toast (notificación)
+  showToastMessage(type: 'success' | 'error', message: string): void {
+    this.toastType = type;
+    this.toastMessage = message;
+    this.showToast = true;
 
-  if (this.registerForm.invalid) {
-    this.registerForm.markAllAsTouched();
-    this.errorMsg = 'Por favor, completa los campos correctamente.';
-    return;
+    setTimeout(() => {
+      this.showToast = false;
+    }, 4000);
   }
 
-  const form = this.registerForm.value;
-  const rawDate = form.dateBirth;
-  let isoDate: string;
+  // Envío del formulario
+  onSubmit(): void {
+    if (this.submittedSuccessfully) return; // evita doble ejecución
 
-  if (!rawDate) {
-    this.errorMsg = 'Fecha de nacimiento inválida.';
-    return;
-  } else if (typeof rawDate === 'string' && rawDate.includes('T')) {
-    isoDate = new Date(rawDate).toISOString().slice(0, 10);
-  } else if (typeof rawDate === 'string') {
-    isoDate = rawDate;
-  } else {
-    isoDate = (rawDate as Date).toISOString().slice(0, 10);
-  }
+    if (this.registerForm.invalid) {
+      this.registerForm.markAllAsTouched();
+      this.showToastMessage('error', 'Por favor completa los campos correctamente.');
+      return;
+    }
 
-  const payload: RegisterUserDTO = {
-    email: form.email,
-    password: form.password,
-    name: form.name,
-    phone: form.phone || '',
-    dateOfBirth: isoDate
-  };
+    const form = this.registerForm.value;
+    const rawDate = form.dateBirth;
+    let isoDate: string;
 
-  console.log('📦 Payload:', payload);
-  
-  this.loading = true;
-  this.errorMsg = '';
+    if (!rawDate) {
+      this.showToastMessage('error', 'Fecha de nacimiento inválida.');
+      return;
+    } else if (typeof rawDate === 'string' && rawDate.includes('T')) {
+      isoDate = new Date(rawDate).toISOString().slice(0, 10);
+    } else if (typeof rawDate === 'string') {
+      isoDate = rawDate;
+    } else {
+      isoDate = (rawDate as Date).toISOString().slice(0, 10);
+    }
 
-  console.log('🚀 Llamando authService.register...');
+    const payload: RegisterUserDTO = {
+      email: form.email,
+      password: form.password,
+      name: form.name,
+      phone: form.phone || '',
+      dateOfBirth: isoDate
+    };
 
-  this.authService.register(payload)
-    .pipe(finalize(() => {
-      console.log('🏁 Finalize ejecutado');
-      this.loading = false;
-    }))
-    .subscribe({
-      next: (res) => {
-        console.log('✅ Registro exitoso:', res);
-        console.log('📢 Llamando notification.show...');
-        console.log('Notification component:', this.notification);
-        
-        this.notification.show('¡Usuario registrado exitosamente!', 'success');
-        
-        console.log('Después de show() - visible:', this.notification.visible);
-        console.log('Después de show() - message:', this.notification.message);
-        
-        setTimeout(() => {
-          console.log('🔄 Navegando a /login');
-          this.router.navigate(['/login']);
-        }, 3000);
-      },
-      error: (err) => {
-        console.error('❌ Error al registrar:', err);
-        
-        let msg = 'Error en el servidor. Intenta más tarde.';
-        
-        if (err?.status === 400 || err?.status === 422) {
-          if (err.error) {
-            if (typeof err.error === 'string') msg = err.error;
-            else if (err.error.message) msg = err.error.message;
-            else if (err.error.errors) msg = Object.values(err.error.errors).flat().join(' | ');
-            else msg = 'Datos inválidos. Revisa los campos.';
-          } else msg = 'Datos inválidos.';
-        } else if (err?.status === 0) {
-          msg = 'No se pudo conectar con el servidor.';
+    this.loading = true;
+
+    this.authService.register(payload)
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe({
+        next: (res) => {
+          console.log('✅ Registro exitoso:', res);
+          this.submittedSuccessfully = true;
+
+          this.showToastMessage('success', '¡Usuario registrado exitosamente!');
+
+          // Limpiar el formulario antes de redirigir
+          this.registerForm.reset();
+
+          // Esperar a que se vea el mensaje y luego redirigir
+          setTimeout(() => {
+            this.showToast = false;
+            this.router.navigate(['/login']);
+          }, 2500);
+        },
+        error: (err) => {
+          console.error('❌ Error al registrar:', err);
+          let msg = 'Error en el servidor. Intenta más tarde.';
+
+          if (err?.status === 400 || err?.status === 422) {
+            if (err.error) {
+              if (typeof err.error === 'string') msg = err.error;
+              else if (err.error.message) msg = err.error.message;
+              else if (err.error.errors) msg = Object.values(err.error.errors).flat().join(' | ');
+              else msg = 'Datos inválidos. Revisa los campos.';
+            }
+          } else if (err?.status === 0) msg = 'No se pudo conectar con el servidor.';
+
+          this.showToastMessage('error', msg);
         }
-        
-        this.errorMsg = msg;
-        console.log('📢 Mostrando notificación de error');
-        this.notification.show(msg, 'error');
-        console.log('Después de show error - visible:', this.notification.visible);
-      }
-    });
-}
-  
+      });
+  }
 }
