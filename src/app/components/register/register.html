@@ -1,6 +1,18 @@
-<app-notification-component #notification></app-notification-component>
+<!-- TOAST (notificación flotante) -->
+<div *ngIf="showToast" class="position-fixed top-0 end-0 p-3" style="z-index: 2000;">
+  <div
+    class="toast align-items-center text-white border-0 show"
+    [ngClass]="toastType === 'success' ? 'bg-success' : 'bg-danger'">
+    <div class="d-flex">
+      <div class="toast-body">
+        {{ toastMessage }}
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="showToast = false"></button>
+    </div>
+  </div>
+</div>
 
-
+<!-- FORMULARIO -->
 <form [formGroup]="registerForm" class="login-card" (ngSubmit)="onSubmit()">
   <h2 class="mb-3 fw-bold text-primary text-center">Registro</h2>
   <p class="text-center text-muted mb-4">Crea tu cuenta</p>
@@ -109,29 +121,21 @@
     }
   </div>
 
-  @if (errorMsg) {
-    <div class="alert alert-danger mt-2" role="alert">
-      <i class="bi bi-exclamation-triangle me-2"></i>{{ errorMsg }}
-    </div>
-  }
-
-<button 
-  type="button" 
-  class="btn btn-primary w-100 rounded-4 mt-2" 
-  [disabled]="loading"
-  (click)="onSubmit()">
-  @if (!loading) {
-    Registrarse
-  } @else {
-    Registrando...
-  }
-</button>
-
+  <!-- Botón -->
+  <button
+    type="submit"
+    class="btn btn-primary w-100 rounded-4 mt-2"
+    [disabled]="loading">
+    @if (!loading) {
+      Registrarse
+    } @else {
+      Registrando...
+    }
+  </button>
 
   <div class="text-center mt-3">
-    <a href="/login" class="text-decoration-none text-primary fw-semibold">¿Ya tienes cuenta? Inicia sesión</a>
+    <a routerLink="/login" class="text-decoration-none text-primary fw-semibold">
+      ¿Ya tienes cuenta? Inicia sesión
+    </a>
   </div>
 </form>
-
-
-

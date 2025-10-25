@@ -62,3 +62,66 @@
 a.text-primary:hover {
   text-decoration: underline;
 }
+
+/* Toast Styles */
+.toast {
+  min-width: 350px;
+  border: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast.show {
+  display: block;
+}
+
+.toast-header {
+  border-bottom: none;
+  padding: 1rem;
+  font-weight: 600;
+}
+
+.toast-body {
+  padding: 1rem;
+  white-space: pre-line;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.toast .btn-close-white {
+  opacity: 0.8;
+}
+
+.toast .btn-close-white:hover {
+  opacity: 1;
+}
+
+.bg-success {
+  background-color: #28a745 !important;
+}
+
+.bg-danger {
+  background-color: #dc3545 !important;
+}
+
+.toast-container {
+  z-index: 11000;
+}
+.toast {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  z-index: 99999 !important;
+  display: block !important;
+}
