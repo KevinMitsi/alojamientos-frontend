@@ -196,22 +196,3 @@
   }
 </div>
 
-<!-- Toast Container -->
-<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11000">
-  @if (showToast()) {
-    <div class="toast show" role="alert" [class.bg-success]="toastType() === 'success'" [class.bg-danger]="toastType() === 'error'">
-      <div class="toast-header text-white" [class.bg-success]="toastType() === 'success'" [class.bg-danger]="toastType() === 'error'">
-        @if (toastType() === 'success') {
-          <i class="bi bi-check-circle-fill me-2"></i>
-        } @else {
-          <i class="bi bi-exclamation-circle-fill me-2"></i>
-        }
-        <strong class="me-auto">{{ toastTitle() }}</strong>
-        <button type="button" class="btn-close btn-close-white" (click)="closeToast()"></button>
-      </div>
-      <div class="toast-body text-white">
-        {{ toastMessage() }}
-      </div>
-    </div>
-  }
-</div>
