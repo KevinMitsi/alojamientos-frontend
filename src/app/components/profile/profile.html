@@ -1,0 +1,53 @@
+<div class="profile-container" *ngIf="user">
+  <h2 class="text-center mb-4">Mi Perfil</h2>
+
+  <div class="profile-card">
+    <div class="profile-photo-section">
+      <img 
+        [src]="user.profileImageUrl || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"
+        alt="Foto de perfil"
+        class="profile-photo"
+      />
+
+      <div *ngIf="editMode" class="mt-2">
+        <input type="file" (change)="onFileSelected($event)" />
+        <button class="btn btn-secondary mt-2" (click)="uploadImage()">Subir Imagen</button>
+      </div>
+    </div>
+
+    <div class="profile-info">
+      <div class="info-row">
+        <label>Nombre:</label>
+        <input [(ngModel)]="editData.name" [readonly]="!editMode" />
+      </div>
+
+      <div class="info-row">
+        <label>Correo:</label>
+        <input [value]="user.email" readonly />
+      </div>
+
+      <div class="info-row">
+        <label>Teléfono:</label>
+        <input [(ngModel)]="editData.phone" [readonly]="!editMode" />
+      </div>
+
+      <div class="info-row">
+        <label>Año de nacimiento:</label>
+        <input type="date" [(ngModel)]="editData.birthYear" [readonly]="!editMode" />
+      </div>
+
+      <div class="info-row">
+        <label>Descripción:</label>
+        <textarea [(ngModel)]="editData.description" [readonly]="!editMode"></textarea>
+      </div>
+
+      <div class="button-section mt-3">
+        <button *ngIf="!editMode" class="btn btn-primary" (click)="enableEdit()">Editar</button>
+        <div *ngIf="editMode" class="edit-buttons">
+          <button class="btn btn-success me-2" (click)="saveChanges()">Guardar</button>
+          <button class="btn btn-danger" (click)="cancelEdit()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
