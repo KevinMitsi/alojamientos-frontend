@@ -9,6 +9,10 @@ import { MapService } from '../../services/map-service';
 import { ReservationService } from '../../services/reservation.service';
 import { CreateReservationDTO } from '../../models/reservation.model';
 import { ReservationDTO } from '../../models/reservation.model';
+import { FlatpickrModule } from 'angularx-flatpickr';
+import flatpickr from 'flatpickr';
+import { Spanish } from 'flatpickr/dist/l10n/es.js';
+import 'flatpickr/dist/flatpickr.min.css';
 @Component({
   selector: 'app-accommodation-detail',
   standalone: true,
@@ -22,6 +26,8 @@ export class AccommodationDetailComponent implements OnInit,AfterViewInit {
   private mapService = inject(MapService);
   private reservationService = inject(ReservationService);
   private mapInitialized = signal(false);
+
+  
 
 
   // Datos del alojamiento
@@ -73,6 +79,7 @@ export class AccommodationDetailComponent implements OnInit,AfterViewInit {
   });
 
   ngOnInit(): void {
+   
      
     const id = this.route.snapshot.paramMap.get('id');
     
@@ -278,20 +285,45 @@ onReserve(): void {
     });
   }
 
-  /** Verifica si una fecha está ocupada según el estado */
+  /** Inicializa Flatpickr con colores */
+  private initializeCalendar(): void {
+    flatpickr('#calendar', {
+      locale: Spanish,
+      dateFormat: 'Y-m-d',
+      inline: true, // calendario visible siempre
+      onDayCreate: (_dObj, _dStr, fp, dayElem) => {
+        const date = dayElem.dateObj.toISOString().split('T')[0];
+        const status = this.getDateStatus(date);
+
+        if (status === 'pending') {
+          dayElem.classList.add('flatpickr-day--pending');
+        } else if (status === 'completed') {
+          dayElem.classList.add('flatpickr-day--completed');
+        }
+      },
+      onChange: (selectedDates) => {
+        if (selectedDates.length > 0) {
+          this.checkInDate.set(selectedDates[0].toISOString().split('T')[0]);
+        }
+      },
+    });
+  }
+
   getDateStatus(date: string): 'completed' | 'pending' | null {
-    const selectedDate = new Date(date);
+    if (!date) return null;
+    const selected = new Date(date + 'T00:00:00');
 
     for (const r of this.reservations()) {
-      const start = new Date(r.startDate);
-      const end = new Date(r.endDate);
+      const start = new Date(r.startDate.split('T')[0] + 'T00:00:00');
+      const end = new Date(r.endDate.split('T')[0] + 'T00:00:00');
 
-      if (selectedDate >= start && selectedDate <= end) {
+      if (selected >= start && selected <= end) {
         if (r.status === 'COMPLETED') return 'completed';
         if (r.status === 'PENDING') return 'pending';
       }
     }
     return null;
   }
+
 
 }
