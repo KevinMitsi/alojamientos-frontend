@@ -26,10 +26,7 @@ export const routes: Routes = [
   //Ruta para Register
   { path: 'register', component: Register },
 
-  {
-  path: 'profile',
-  component: Profile
-},
+  { path: 'profile', component: Profile, runGuardsAndResolvers: 'always' },
 
   // Ruta wildcard - redirige cualquier ruta no encontrada a la página principal
   {
