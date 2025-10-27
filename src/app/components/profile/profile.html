@@ -31,10 +31,11 @@
         <input [(ngModel)]="editData.phone" [readonly]="!editMode" />
       </div>
 
-      <div class="info-row">
-        <label>Año de nacimiento:</label>
-        <input type="date" [(ngModel)]="editData.birthYear" [readonly]="!editMode" />
-      </div>
+     <div class="info-row">
+       <label>Fecha de nacimiento:</label>
+      <input type="date" [(ngModel)]="editData.dateOfBirth" [readonly]="!editMode" />
+     </div>
+
 
       <div class="info-row">
         <label>Descripción:</label>

@@ -22,7 +22,7 @@ export class Profile implements OnInit {
 
   user: User | null = null;
   editMode = false;
-  editData: EditUser = { name: '', phone: '', birthYear: 0, description: '' };
+  editData: EditUser = { name: '', phone: '', dateOfBirth: '', description: '' };
   selectedFile: File | null = null;
   loading = true;
 
@@ -45,7 +45,7 @@ export class Profile implements OnInit {
         this.editData = {
           name: data.name,
           phone: data.phone,
-          birthYear: new Date(data.dateOfBirth).getFullYear(),
+         dateOfBirth: data.dateOfBirth,
           description: data.description
         };
 
@@ -73,23 +73,24 @@ export class Profile implements OnInit {
   }
 
   saveChanges(): void {
-    if (!this.editData.name || !this.editData.phone || !this.editData.birthYear) {
+    if (!this.editData.name || !this.editData.phone || !this.editData.dateOfBirth) {
       Swal.fire('Atención', 'Por favor, completa todos los campos obligatorios.', 'warning');
       return;
     }
 
-    this.userService.editProfile(this.editData).subscribe({
-      next: (updatedUser) => {
-        this.user = updatedUser;
-        this.editMode = false;
-        Swal.fire('Éxito', 'Perfil actualizado correctamente', 'success');
-        this.cdr.detectChanges(); // 👈 También aquí
-      },
-      error: () => {
-        Swal.fire('Error', 'No se pudo actualizar el perfil', 'error');
-        this.cdr.detectChanges();
-      }
-    });
+this.userService.editProfile(this.editData).subscribe({
+  next: (updatedUser) => {
+    this.user = updatedUser;
+    this.editMode = false;
+    Swal.fire('Éxito', 'Perfil actualizado correctamente', 'success');
+    this.cdr.detectChanges();
+  },
+  error: () => {
+    Swal.fire('Error', 'No se pudo actualizar el perfil', 'error');
+    this.cdr.detectChanges();
+  }
+});
+
   }
 
   onFileSelected(event: any): void {
@@ -98,18 +99,23 @@ export class Profile implements OnInit {
   }
 
   uploadImage(): void {
-    if (!this.selectedFile) return;
-
-    this.userService.uploadProfileImage(this.selectedFile).subscribe({
-      next: (url) => {
-        if (this.user) this.user.profileImageUrl = url;
-        Swal.fire('Éxito', 'Foto de perfil actualizada', 'success');
-        this.cdr.detectChanges(); // 👈 Y aquí también
-      },
-      error: () => {
-        Swal.fire('Error', 'No se pudo subir la imagen', 'error');
-        this.cdr.detectChanges();
-      }
-    });
+  if (!this.selectedFile) {
+    Swal.fire('Atención', 'Selecciona un archivo primero', 'warning');
+    return;
   }
+
+  this.userService.uploadProfileImage(this.selectedFile).subscribe({
+    next: (url) => {
+      if (this.user) this.user.profileImageUrl = url;
+      Swal.fire('Éxito', 'Foto de perfil actualizada', 'success');
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('Error al subir imagen:', err);
+      Swal.fire('Error', err?.error || 'No se pudo subir la imagen', 'error');
+      this.cdr.detectChanges();
+    }
+  });
+}
+
 }

@@ -24,10 +24,13 @@ export class UserService {
 
   // 🔹 Subir imagen de perfil
   uploadProfileImage(image: File): Observable<string> {
-    const formData = new FormData();
-    formData.append('image', image);
-    return this.http.post(`${this.baseUrl}/profile-image`, formData, { responseType: 'text' });
-  }
+  const formData = new FormData();
+  formData.append('image', image, image.name);
+  return this.http.post(`${this.baseUrl}/profile-image`, formData, {
+    responseType: 'text'
+  });
+}
+
 
   // 🔹 Eliminar imagen de perfil
   deleteProfileImage(): Observable<void> {

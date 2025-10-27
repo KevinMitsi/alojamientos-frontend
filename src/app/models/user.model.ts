@@ -34,6 +34,6 @@ export interface RegisterUserDTO {
 export interface EditUser {
   name: string;
   phone: string;
-  birthYear: number;
+  dateOfBirth: string;
   description: string;
 }
