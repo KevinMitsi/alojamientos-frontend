@@ -116,31 +116,39 @@
         <div class="row g-0">
           <!-- Check-in -->
           <div class="col-6 border-end border-bottom">
-            <div class="p-3">
-              <label class="form-label small fw-semibold mb-1">LLEGADA</label>
-              <input 
-                type="date" 
-                class="form-control border-0 p-0"
-                [min]="minDate()"
-                [value]="checkInDate()"
-                (change)="onCheckInChange($event)"
-              >
-            </div>
-          </div>
+  <div class="p-3">
+    <label class="form-label small fw-semibold mb-1">LLEGADA</label>
+    <input
+      type="date"
+      class="form-control border-0 p-0"
+      [min]="minDate()"
+      [value]="checkInDate()"
+      (change)="onCheckInChange($event)"
+      [ngClass]="{
+        'date-completed': getDateStatus(checkInDate()) === 'completed',
+        'date-pending': getDateStatus(checkInDate()) === 'pending'
+      }"
+    />
+  </div>
+</div>
           <!-- Check-out -->
           <div class="col-6 border-bottom">
-            <div class="p-3">
-              <label class="form-label small fw-semibold mb-1">SALIDA</label>
-              <input 
-                type="date" 
-                class="form-control border-0 p-0"
-                [min]="minCheckOutDate()"
-                [value]="checkOutDate()"
-                (change)="onCheckOutChange($event)"
-                [disabled]="!checkInDate()"
-              >
-            </div>
-          </div>
+  <div class="p-3">
+    <label class="form-label small fw-semibold mb-1">SALIDA</label>
+    <input
+      type="date"
+      class="form-control border-0 p-0"
+      [min]="minCheckOutDate()"
+      [value]="checkOutDate()"
+      (change)="onCheckOutChange($event)"
+      [disabled]="!checkInDate()"
+      [ngClass]="{
+        'date-completed': getDateStatus(checkOutDate()) === 'completed',
+        'date-pending': getDateStatus(checkOutDate()) === 'pending'
+      }"
+    />
+  </div>
+</div>
           <!-- Huéspedes -->
           <div class="col-12">
             <div class="p-3">

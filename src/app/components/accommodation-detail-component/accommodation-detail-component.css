@@ -205,3 +205,83 @@ select.form-select:focus {
   padding: 8px;
 }
 
+
+
+:host {
+  display: block;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.card {
+  border-radius: 16px !important;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #007bff, #00a2ff);
+  border: none;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(90deg, #0056b3, #0091e6);
+  transform: scale(1.03);
+}
+
+input[type='date'],
+select {
+  background-color: #fff;
+  border-radius: 10px;
+  border: 1px solid #ced4da;
+  padding: 8px;
+  width: 100%;
+  transition: border-color 0.3s ease;
+}
+
+input[type='date']:focus,
+select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+#map {
+  height: 350px;
+  border-radius: 16px;
+  margin-top: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.text-muted {
+  color: #6c757d !important;
+}
+
+
+.date-completed {
+  background-color: #cce5ff !important; /* Azul suave */
+  color: #004085 !important;
+}
+
+.date-pending {
+  background-color: #fff3cd !important; /* Amarillo/naranja suave */
+  color: #856404 !important;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+input[type='date']:hover {
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}

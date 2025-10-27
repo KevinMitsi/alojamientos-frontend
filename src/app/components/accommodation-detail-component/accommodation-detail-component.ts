@@ -6,6 +6,9 @@ import { AccommodationService } from '../../services/accommodation.service';
 import { AccommodationDTO } from '../../models/accommodation.model';
 import { CommentListComponent } from '../comment/comment';
 import { MapService } from '../../services/map-service';
+import { ReservationService } from '../../services/reservation.service';
+import { CreateReservationDTO } from '../../models/reservation.model';
+import { ReservationDTO } from '../../models/reservation.model';
 @Component({
   selector: 'app-accommodation-detail',
   standalone: true,
@@ -16,14 +19,17 @@ import { MapService } from '../../services/map-service';
 export class AccommodationDetailComponent implements OnInit,AfterViewInit {
   private route = inject(ActivatedRoute);
   private accommodationService = inject(AccommodationService);
-private mapService = inject(MapService);
-  
+  private mapService = inject(MapService);
+  private reservationService = inject(ReservationService);
   private mapInitialized = signal(false);
+
 
   // Datos del alojamiento
   accommodation = signal<AccommodationDTO | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
+
+  reservations = signal<ReservationDTO[]>([]);
 
   // Datos del formulario de reserva
   checkInDate = signal<string>('');
@@ -84,21 +90,23 @@ private mapService = inject(MapService);
       return;
     }
 
-    this.accommodationService.findById(accommodationId)
-      .subscribe({
-        next: (data) => {
-          this.accommodation.set(data);
-          // Inicializar huéspedes con 1, pero no más de la capacidad máxima
-          this.guests.set(Math.min(1, data.maxGuests));
-          this.loading.set(false);
-           this.initializeMapWhenReady();
-        },
-        error: (err) => {
-          console.error('Error al cargar alojamiento:', err);
-          this.error.set('No se pudo cargar el alojamiento. Por favor, intenta de nuevo.');
-          this.loading.set(false);
-        }
-      });
+  this.accommodationService.findById(accommodationId)
+  .subscribe({
+    next: (data) => {
+      this.accommodation.set(data);
+      this.guests.set(Math.min(1, data.maxGuests));
+      this.loading.set(false);
+      this.initializeMapWhenReady();
+
+      
+      this.loadReservations(accommodationId);
+    },
+    error: (err) => {
+      console.error('Error al cargar alojamiento:', err);
+      this.error.set('No se pudo cargar el alojamiento.');
+      this.loading.set(false);
+    }
+  });
  
       
   }
@@ -185,33 +193,45 @@ private mapService = inject(MapService);
     this.guests.set(Number(select.value));
   }
 
-  onReserve(): void {
+onReserve(): void {
     const acc = this.accommodation();
-    if (!acc || !this.checkInDate() || !this.checkOutDate()) {
-      this.showAlert('error', 'Error', 'Por favor, completa todos los campos');
+    if (!acc) return;
+
+    if (!this.checkInDate() || !this.checkOutDate()) {
+      Swal.fire('Fechas incompletas', 'Selecciona llegada y salida.', 'warning');
       return;
     }
 
-    if (this.totalNights() < 1) {
-      this.showAlert('error', 'Error', 'La reserva debe ser de al menos 1 noche');
-      return;
-    }
-
-    // Aquí puedes implementar la lógica de reserva
-    const reservationData = {
+    const dto: CreateReservationDTO = {
       accommodationId: acc.id,
-      checkIn: this.checkInDate(),
-      checkOut: this.checkOutDate(),
+      startDate: this.checkInDate(),
+      endDate: this.checkOutDate(),
       guests: this.guests(),
-      totalNights: this.totalNights(),
-      totalPrice: this.totalPrice()
     };
 
-    console.log('Datos de reserva:', reservationData);
-    
-    // Mostrar SweetAlert de éxito
-    const message = `Alojamiento: ${acc.title}\nCheck-in: ${this.formatDateForDisplay(this.checkInDate())}\nCheck-out: ${this.formatDateForDisplay(this.checkOutDate())}\nHuéspedes: ${this.guests()}\nNoches: ${this.totalNights()}\nTotal: ${this.formatCurrency(this.totalPrice())}`;
-    this.showAlert('success', '¡Reserva Confirmada!', message);
+    Swal.fire({
+      title: 'Procesando reserva...',
+      didOpen: () => Swal.showLoading(),
+      allowOutsideClick: false,
+    });
+
+    this.reservationService.create(dto).subscribe({
+      next: (res) => {
+        Swal.fire({
+          icon: 'success',
+          title: '¡Reserva creada!',
+          text: `Tu reserva fue creada exitosamente. Estado: ${res.status}`,
+        });
+      },
+      error: (err) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al crear reserva',
+          text: err.error?.message || 'No se pudo completar la reserva.',
+        });
+        console.error(err);
+      },
+    });
   }
 
   // Método para mostrar SweetAlert
@@ -244,4 +264,34 @@ private mapService = inject(MapService);
       minimumFractionDigits: 0
     }).format(amount);
   }
+
+    private loadReservations(accommodationId: number) {
+    this.reservationService.getByAccommodation(accommodationId).subscribe({
+      next: (res) => {
+        const content = (res as any).content ?? res;
+        this.reservations.set(content);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+      },
+    });
+  }
+
+  /** Verifica si una fecha está ocupada según el estado */
+  getDateStatus(date: string): 'completed' | 'pending' | null {
+    const selectedDate = new Date(date);
+
+    for (const r of this.reservations()) {
+      const start = new Date(r.startDate);
+      const end = new Date(r.endDate);
+
+      if (selectedDate >= start && selectedDate <= end) {
+        if (r.status === 'COMPLETED') return 'completed';
+        if (r.status === 'PENDING') return 'pending';
+      }
+    }
+    return null;
+  }
+
 }
