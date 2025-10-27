@@ -30,3 +30,10 @@ export interface RegisterUserDTO {
   phone: string;
   dateOfBirth: string; // ISO string
 }
+
+export interface EditUser {
+  name: string;
+  phone: string;
+  dateOfBirth: string;
+  description: string;
+}
