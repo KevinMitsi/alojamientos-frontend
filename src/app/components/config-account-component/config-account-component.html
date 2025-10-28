@@ -1,0 +1,85 @@
+<div class="account-config-container">
+	<h2 class="text-center mb-4">Configuración de la Cuenta</h2>
+
+	<!-- Sección de información de perfil -->
+	<div class="account-section">
+		<div class="account-section-title">Perfil</div>
+		<div class="info-row">
+			<label>Nombre:</label>
+			<span>{{ user?.name || '' }}</span>
+		</div>
+		<div class="info-row">
+			<label>Email:</label>
+			<span>{{ user?.email || '' }}</span>
+		</div>
+		<div class="info-row">
+			<label>Tipo de cuenta:</label>
+			<span>{{ userTypeLabel }}</span>
+		</div>
+	</div>
+
+	<!-- Sección de cambio de contraseña -->
+	<div class="account-section">
+		<div class="account-section-title">Contraseña</div>
+		<div class="info-row">
+			<label>Contraseña:</label>
+			<div class="password-row">
+				<input type="password" value="********" readonly />
+				<button class="btn btn-secondary" (click)="showChangePassword = !showChangePassword">Cambiar</button>
+			</div>
+		</div>
+			@if (showChangePassword) {
+				<form class="change-password-form" (ngSubmit)="onChangePassword()">
+					<div class="info-row">
+						<label>Nueva contraseña:</label>
+						<input type="password" [(ngModel)]="newPassword" name="newPassword" required />
+					</div>
+					<div class="info-row">
+						<label>Confirmar contraseña:</label>
+						<input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" required />
+					</div>
+					<div class="button-section">
+						<button class="btn btn-success me-2" type="submit">Guardar</button>
+						<button class="btn btn-danger" type="button" (click)="showChangePassword = false">Cancelar</button>
+					</div>
+					@if (passwordError) {
+						<div style="color: #dc3545; margin-top: 0.5rem;">{{ passwordError }}</div>
+					}
+					@if (passwordSuccess) {
+						<div style="color: #28a745; margin-top: 0.5rem;">{{ passwordSuccess }}</div>
+					}
+				</form>
+			}
+	</div>
+
+	<!-- Sección de documentos -->
+	<div class="account-section">
+		<div class="account-section-title">Documentos</div>
+		<form (ngSubmit)="onUploadDocuments()">
+			<div class="info-row">
+				<label>Agregar documentos (imágenes):</label>
+				<input type="file" (change)="onFileSelected($event)" multiple accept="image/*" />
+			</div>
+			<div class="button-section">
+				<button class="btn btn-primary" type="submit" [disabled]="!selectedFiles.length">Subir</button>
+			</div>
+					@if (uploadError) {
+						<div style="color: #dc3545; margin-top: 0.5rem;">{{ uploadError }}</div>
+					}
+					@if (uploadSuccess) {
+						<div style="color: #28a745; margin-top: 0.5rem;">{{ uploadSuccess }}</div>
+					}
+		</form>
+			<div class="document-list">
+						@if (userDocuments.length === 0) {
+							<div class="text-secondary">No hay documentos subidos.</div>
+						}
+						@for (doc of userDocuments; track doc; let i = $index) {
+							<div class="document-item">
+								<span>{{ doc }}</span>
+								<button class="btn btn-danger" (click)="onDeleteDocument(i)">Eliminar</button>
+							</div>
+						}
+			</div>
+	</div>
+</div>

@@ -1,0 +1,132 @@
+
+
+/* Card container similar to login */
+.account-config-container {
+	max-width: 520px;
+	margin: 80px auto;
+	padding: 3rem 3.5rem;
+	background: #fff;
+	border-radius: 20px;
+	box-shadow: 0 8px 28px rgba(0,0,0,0.15);
+	border: 1px solid #f1f1f1;
+}
+
+.account-section {
+	margin-bottom: 2.5rem;
+	padding-bottom: 1.5rem;
+	border-bottom: 1px solid #f1f1f1;
+}
+.account-section:last-child {
+	border-bottom: none;
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+.account-section-title {
+	font-size: 1.3rem;
+	font-weight: 700;
+	margin-bottom: 1.2rem;
+	color: #222;
+}
+
+.info-row {
+	margin-bottom: 1.2rem;
+}
+.info-row label {
+	font-weight: 600;
+	margin-bottom: 0.4rem;
+	display: block;
+}
+.info-row input, .info-row textarea, .info-row select {
+	width: 100%;
+	height: 50px;
+	font-size: 1rem;
+	padding: 0 14px;
+	border-radius: 12px;
+	border: 1px solid #ddd;
+	background: #f9f9f9;
+	margin-top: 0.2rem;
+}
+.info-row input[readonly], .info-row textarea[readonly] {
+	background: #e9ecef;
+	cursor: not-allowed;
+}
+
+.password-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.change-password-form {
+	background: #f8f9fa;
+	border-radius: 14px;
+	padding: 18px 16px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+	margin-top: 1rem;
+}
+
+.button-section {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+	margin-top: 1rem;
+}
+
+.btn {
+	border-radius: 12px;
+	padding: 10px 22px;
+	font-weight: 600;
+	font-size: 1rem;
+	border: none;
+	transition: background 0.2s;
+	cursor: pointer;
+}
+.btn-primary {
+	background-color: #007bff;
+	color: #fff;
+}
+.btn-primary:hover {
+	background-color: #0069d9;
+}
+.btn-secondary {
+	background-color: #6c757d;
+	color: #fff;
+}
+.btn-secondary:hover {
+	background-color: #565e64;
+}
+.btn-success {
+	background-color: #28a745;
+	color: #fff;
+}
+.btn-success:hover {
+	background-color: #218838;
+}
+.btn-danger {
+	background-color: #dc3545;
+	color: #fff;
+}
+.btn-danger:hover {
+	background-color: #b52a37;
+}
+
+.document-list {
+	margin-top: 1rem;
+}
+.document-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	background: #f9f9f9;
+	border-radius: 8px;
+	padding: 10px 14px;
+	margin-bottom: 0.7rem;
+}
+.document-item span {
+	font-size: 1rem;
+	color: #333;
+}
+.document-item button {
+	margin-left: 10px;
+}
