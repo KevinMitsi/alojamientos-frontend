@@ -1,0 +1,45 @@
+<div class="reservations-container">
+  <h2 class="reservations-title">Mis Reservas</h2>
+  <p class="reservations-subtitle">
+    Aquí puedes ver todas tus reservas, tanto las próximas como las ya realizadas.
+  </p>
+
+  <div *ngIf="reservations.length === 0 && !loading" class="no-reservations">
+    No tienes reservas aún.
+  </div>
+
+  <div class="reservation-card" *ngFor="let r of reservations">
+    <!-- Imagen del alojamiento -->
+    <div class="reservation-image">
+      <img
+        [src]="r.imageUrl || '/assets/images/default-hotel.jpg'"
+        alt="Imagen del alojamiento"
+      />
+    </div>
+
+    <!-- Información principal -->
+    <div class="reservation-info">
+      <h3 class="accommodation-name">{{ r.accommodationName }}</h3>
+
+      <p><strong>Entrada:</strong> {{ r.startDate | date: 'mediumDate' }}</p>
+      <p><strong>Salida:</strong> {{ r.endDate | date: 'mediumDate' }}</p>
+
+      <!-- ✅ Noches debajo de salida -->
+      <p class="nights-text"><i class="bi bi-moon"></i> {{ r.nights }} noches</p>
+
+      <div class="status-row">
+        <span class="status" [ngClass]="r.status.toLowerCase()">{{ r.status }}</span>
+      </div>
+
+      <div class="actions">
+        <button class="btn pay" *ngIf="r.status === 'PENDING'" (click)="payReservation(r.id)">Pagar</button>
+        <button class="btn cancel" *ngIf="r.status === 'PENDING' || r.status === 'CONFIRMED'" (click)="cancelReservation(r.id)">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Precio -->
+    <div class="reservation-price">
+      <span>{{ r.totalPrice | currency: 'COP' }}</span>
+    </div>
+  </div>
+</div>

@@ -15,6 +15,8 @@ export class ReservationService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = 'http://localhost:8080/api/reservations';
 
+
+
   /**
    * Crear nueva reserva (requiere autenticación y rol USER)
    */
@@ -65,6 +67,15 @@ export class ReservationService {
 getByAccommodation(accommodationId: number): Observable<ReservationDTO[]> {
   return this.http.get<ReservationDTO[]>(
     `${this.baseUrl}/accommodation/${accommodationId}`
+  );
+}
+
+/**
+ * Iniciar pago (MercadoPago)
+ */
+payReservation(reservationId: number): Observable<{ paymentUrl: string }> {
+  return this.http.post<{ paymentUrl: string }>(
+    `${this.baseUrl}/${reservationId}/pay`, {}
   );
 }
 

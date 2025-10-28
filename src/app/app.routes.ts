@@ -4,6 +4,7 @@ import { AccommodationDetailComponent } from './components/accommodation-detail-
 import { Login } from './components/login/login';
 import { Register } from './components/register/register';  
 import { Profile } from './components/profile/profile';
+import { Reservations } from './components/reservations/reservations';
 
 export const routes: Routes = [
   // Ruta principal - muestra la página principal con las cards
@@ -27,6 +28,9 @@ export const routes: Routes = [
   { path: 'register', component: Register },
 
   { path: 'profile', component: Profile, runGuardsAndResolvers: 'always' },
+
+   {path: 'reservation', component: Reservations},
+
 
   // Ruta wildcard - redirige cualquier ruta no encontrada a la página principal
   {

@@ -21,6 +21,10 @@ export interface ReservationDTO {
   canceladoAt?: string;
   motivoCancelacion?: string;
   canceladoPor?: string;
+
+  accommodationName?: string; 
+  imageUrl?: string;  
+  guests?: number; 
 }
 
 export interface ReservationSearchCriteria {
