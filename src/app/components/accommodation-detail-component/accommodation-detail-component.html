@@ -2,7 +2,11 @@
   <!-- Estado de carga -->
   @if (loading()) {
     <div class="text-center py-5">
-      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+      <div
+        class="spinner-border text-primary"
+        style="width: 3rem; height: 3rem"
+        role="status"
+      >
         <span class="visually-hidden">Cargando...</span>
       </div>
     </div>
@@ -19,180 +23,216 @@
   <!-- Contenido del detalle -->
   @if (!loading() && !error() && accommodation()) {
     <div class="row">
-    <div class="col-lg-8">
-      <!-- Galería de imágenes -->
-      <div class="card mb-4 border-0 shadow-sm">
-        <img 
-          [src]="getPrimaryImage()" 
-          class="card-img-top rounded-3" 
-          [alt]="accommodation()!.title"
-          style="max-height: 500px; object-fit: cover;"
-        >
-        
-        <!-- Miniaturas de imágenes adicionales -->
-        @if (accommodation()!.images.length > 1) {
+      <!-- ========================== -->
+      <!--     COLUMNA IZQUIERDA     -->
+      <!-- ========================== -->
+      <div class="col-lg-8">
+        <!-- Galería de imágenes -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <img
+            [src]="getPrimaryImage()"
+            class="card-img-top rounded-3"
+            [alt]="accommodation()!.title"
+            style="max-height: 500px; object-fit: cover"
+          />
+
+          <!-- Miniaturas -->
+          @if (accommodation()!.images.length > 1) {
+            <div class="card-body">
+              <div class="d-flex gap-2 overflow-auto">
+                @for (image of accommodation()!.images; track image.id) {
+                  <img
+                    [src]="image.thumbnailUrl || image.url"
+                    [alt]="accommodation()!.title"
+                    class="rounded"
+                    style="
+                      width: 100px;
+                      height: 75px;
+                      object-fit: cover;
+                      cursor: pointer;
+                    "
+                  />
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Información del alojamiento -->
+        <div class="card border-0 shadow-sm mb-4">
           <div class="card-body">
-            <div class="d-flex gap-2 overflow-auto">
-              @for (image of accommodation()!.images; track image.id) {
-                <img 
-                  [src]="image.thumbnailUrl || image.url" 
-                  [alt]="accommodation()!.title"
-                  class="rounded"
-                  style="width: 100px; height: 75px; object-fit: cover; cursor: pointer;"
+            <h1 class="card-title h3 mb-3">{{ accommodation()!.title }}</h1>
+
+            <!-- Rating -->
+            <div class="mb-3">
+              <span class="text-warning fs-5">
+                @for (filled of getStarsArray(); track $index) {
+                  <i [class]="filled ? 'bi bi-star-fill' : 'bi bi-star'"></i>
+                }
+              </span>
+              <span class="ms-2 text-muted">
+                {{ accommodation()!.avgRating | number : "1.1-1" }}
+                ({{ accommodation()!.countReservations }} reservas)
+              </span>
+            </div>
+
+            <!-- Ubicación -->
+            <p class="text-muted mb-3">
+              <i class="bi bi-geo-alt-fill"></i>
+              {{ accommodation()!.address }}, {{ accommodation()!.city.name }}
+            </p>
+
+            <!-- Descripción -->
+            <h5 class="mb-3">Descripción</h5>
+            <p class="text-secondary">{{ accommodation()!.description }}</p>
+
+            <!-- Servicios -->
+            <h5 class="mb-3 mt-4">Servicios</h5>
+            <div class="d-flex flex-wrap gap-2">
+              @for (service of accommodation()!.services; track $index) {
+                <span
+                  class="badge bg-primary-subtle text-primary-emphasis fs-6"
                 >
+                  {{ service }}
+                </span>
               }
             </div>
           </div>
-        }
+        </div>
+
+        <!-- Mapa -->
+        <div id="map" class="rounded-3 shadow-sm mb-4" style="height: 350px"></div>
+
+        <!-- Sección de comentarios -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body">
+            <app-comment-list [accommodationId]="accommodation()!.id" />
+          </div>
+        </div>
       </div>
 
-      <!-- Información del alojamiento -->
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-          <h1 class="card-title h3 mb-3">{{ accommodation()!.title }}</h1>
-          
-          <!-- Rating -->
-          <div class="mb-3">
-            <span class="text-warning fs-5">
-              @for (filled of getStarsArray(); track $index) {
-                <i [class]="filled ? 'bi bi-star-fill' : 'bi bi-star'"></i>
-              }
-            </span>
-            <span class="ms-2 text-muted">
-              {{ accommodation()!.avgRating | number:'1.1-1' }} 
-              ({{ accommodation()!.countReservations }} reservas)
-            </span>
-          </div>
+      <!-- ========================== -->
+      <!--     COLUMNA DERECHA        -->
+      <!-- ========================== -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <!-- Precio -->
+            <div class="mb-3">
+              <div class="d-flex align-items-baseline gap-2">
+                <h3 class="mb-0">
+                  {{
+                    accommodation()!.pricePerNight
+                      | currency : "COP" : "symbol" : "1.0-0"
+                  }}
+                </h3>
+                <small class="text-muted">COP</small>
+              </div>
+              <small class="text-muted"
+                >por {{ totalNights() }}
+                {{ totalNights() === 1 ? "noche" : "noches" }}</small
+              >
+            </div>
 
-          <!-- Ubicación -->
-          <p class="text-muted mb-3">
-            <i class="bi bi-geo-alt-fill"></i>
-            {{ accommodation()!.address }}, {{ accommodation()!.city.name }}
-          </p>
+            <hr />
 
-          <!-- Descripción -->
-          <h5 class="mb-3">Descripción</h5>
-          <p class="text-secondary">{{ accommodation()!.description }}</p>
+            <!-- ========================== -->
+            <!--    CALENDARIO DE RESERVAS  -->
+            <!-- ========================== -->
+            <div class="border rounded-3 mb-4 p-3">
+              <h5 class="fw-bold text-primary mb-3 text-center">
+                Calendario de reservas
+              </h5>
 
-          <!-- Servicios -->
-          <h5 class="mb-3 mt-4">Servicios</h5>
-          <div class="d-flex flex-wrap gap-2">
-            @for (service of accommodation()!.services; track $index) {
-              <span class="badge bg-primary-subtle text-primary-emphasis fs-6">
-                {{ service }}
-              </span>
+           <div class="d-flex flex-column gap-3">
+  <!-- Calendario de llegada -->
+  <div>
+    <label class="form-label small fw-semibold mb-1">FECHA DE LLEGADA</label>
+    <input
+      id="checkInCalendar"
+      type="text"
+      class="form-control w-100"
+      placeholder="Selecciona fecha de llegada"
+      readonly
+    />
+  </div>
+
+  <!-- Calendario de salida -->
+  <div>
+    <label class="form-label small fw-semibold mb-1">FECHA DE SALIDA</label>
+    <input
+      id="checkOutCalendar"
+      type="text"
+      class="form-control w-100"
+      placeholder="Selecciona fecha de salida"
+      readonly
+    />
+  </div>
+</div>
+
+
+
+              <!-- Selección de huéspedes -->
+              <div class="mt-4">
+                <label class="form-label small fw-semibold mb-1">HUÉSPEDES</label>
+                <select
+                  class="form-select border-0"
+                  [value]="guests()"
+                  (change)="onGuestsChange($event)"
+                >
+                  @for (n of getGuestOptions(); track n) {
+                    <option [value]="n">
+                      {{ n }} {{ n === 1 ? "huésped" : "huéspedes" }}
+                    </option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <!-- ========================== -->
+            <!--      BOTÓN DE RESERVA      -->
+            <!-- ========================== -->
+            <button
+              class="btn btn-primary w-100 py-3 mb-3 fw-semibold"
+              [disabled]="
+                !accommodation()!.active || !checkInDate() || !checkOutDate()
+              "
+              (click)="onReserve()"
+            >
+              Reservar
+            </button>
+
+            <p class="text-muted small text-center mb-3">
+              No se hará ningún cargo por el momento
+            </p>
+
+            <!-- Desglose de precios -->
+            @if (checkInDate() && checkOutDate() && totalNights() > 0) {
+              <div class="border-top pt-3">
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="text-decoration-underline">
+                    {{
+                      accommodation()!.pricePerNight
+                        | currency : "COP" : "symbol" : "1.0-0"
+                    }}
+                    × {{ totalNights() }}
+                    {{ totalNights() === 1 ? "noche" : "noches" }}
+                  </span>
+                  <span>{{
+                    totalPrice() | currency : "COP" : "symbol" : "1.0-0"
+                  }}</span>
+                </div>
+                <div class="d-flex justify-content-between border-top pt-3">
+                  <span class="fw-bold">Total</span>
+                  <span class="fw-bold">{{
+                    totalPrice() | currency : "COP" : "symbol" : "1.0-0"
+                  }}</span>
+                </div>
+              </div>
             }
           </div>
         </div>
       </div>
-
-<div id="map"></div>
-
-      <!-- Sección de comentarios -->
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-          <app-comment-list [accommodationId]="accommodation()!.id" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Sidebar con información de reserva -->
-<div class="col-lg-4">
-  <div class="card border-0 shadow-sm">
-    <div class="card-body">
-      <!-- Precio -->
-      <div class="mb-3">
-        <div class="d-flex align-items-baseline gap-2">
-          <h3 class="mb-0">{{ accommodation()!.pricePerNight | currency:'COP':'symbol':'1.0-0' }}</h3>
-          <small class="text-muted">COP</small>
-        </div>
-        <small class="text-muted">por {{ totalNights() }} {{ totalNights() === 1 ? 'noche' : 'noches' }}</small>
-      </div>
-
-      <hr>
-
-      <!-- Formulario de fechas y huéspedes -->
-      <div class="border rounded-3 mb-3">
-        <div class="row g-0">
-          <!-- Check-in -->
-          <div class="col-6 border-end border-bottom">
-            <div class="p-3">
-              <label class="form-label small fw-semibold mb-1">LLEGADA</label>
-              <input 
-                type="date" 
-                class="form-control border-0 p-0"
-                [min]="minDate()"
-                [value]="checkInDate()"
-                (change)="onCheckInChange($event)"
-              >
-            </div>
-          </div>
-          <!-- Check-out -->
-          <div class="col-6 border-bottom">
-            <div class="p-3">
-              <label class="form-label small fw-semibold mb-1">SALIDA</label>
-              <input 
-                type="date" 
-                class="form-control border-0 p-0"
-                [min]="minCheckOutDate()"
-                [value]="checkOutDate()"
-                (change)="onCheckOutChange($event)"
-                [disabled]="!checkInDate()"
-              >
-            </div>
-          </div>
-          <!-- Huéspedes -->
-          <div class="col-12">
-            <div class="p-3">
-              <label class="form-label small fw-semibold mb-1">HUÉSPEDES</label>
-              <select 
-                class="form-select border-0 p-0"
-                [value]="guests()"
-                (change)="onGuestsChange($event)"
-              >
-                @for (n of getGuestOptions(); track n) {
-                  <option [value]="n">
-                    {{ n }} {{ n === 1 ? 'huésped' : 'huéspedes' }}
-                  </option>
-                }
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Botón de reserva -->
-      <button 
-        class="btn btn-primary w-100 py-3 mb-3 fw-semibold"
-        [disabled]="!accommodation()!.active || !checkInDate() || !checkOutDate()"
-        (click)="onReserve()"
-      >
-        Reserva
-      </button>
-
-      <p class="text-muted small text-center mb-3">
-        No se hará ningún cargo por el momento
-      </p>
-
-      <!-- Desglose de precios -->
-      @if (checkInDate() && checkOutDate() && totalNights() > 0) {
-        <div class="border-top pt-3">
-          <div class="d-flex justify-content-between mb-2">
-            <span class="text-decoration-underline">
-              {{ accommodation()!.pricePerNight | currency:'COP':'symbol':'1.0-0' }} x {{ totalNights() }} {{ totalNights() === 1 ? 'noche' : 'noches' }}
-            </span>
-            <span>{{ totalPrice() | currency:'COP':'symbol':'1.0-0' }}</span>
-          </div>
-          <div class="d-flex justify-content-between border-top pt-3">
-            <span class="fw-bold">Total</span>
-            <span class="fw-bold">{{ totalPrice() | currency:'COP':'symbol':'1.0-0' }}</span>
-          </div>
-        </div>
-      }
-    </div>
-  </div>
-</div>
     </div>
   }
 </div>
-

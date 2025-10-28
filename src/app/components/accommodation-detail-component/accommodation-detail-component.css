@@ -205,3 +205,183 @@ select.form-select:focus {
   padding: 8px;
 }
 
+
+
+:host {
+  display: block;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.card {
+  border-radius: 16px !important;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #007bff, #00a2ff);
+  border: none;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(90deg, #0056b3, #0091e6);
+  transform: scale(1.03);
+}
+
+input[type='date'],
+select {
+  background-color: #fff;
+  border-radius: 10px;
+  border: 1px solid #ced4da;
+  padding: 8px;
+  width: 100%;
+  transition: border-color 0.3s ease;
+}
+
+input[type='date']:focus,
+select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+#map {
+  height: 350px;
+  border-radius: 16px;
+  margin-top: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.text-muted {
+  color: #6c757d !important;
+}
+
+
+/* Estilos base del calendario Flatpickr */
+.flatpickr-calendar {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Días con reserva PENDIENTE - Amarillo/Naranja */
+.flatpickr-day.flatpickr-day--pending {
+  background: #ffc107 !important;
+  color: #000 !important;
+  font-weight: 600 !important;
+  border-radius: 50% !important;
+  border: none !important;
+}
+
+.flatpickr-day.flatpickr-day--pending:hover {
+  background: #ffb300 !important;
+  color: #000 !important;
+}
+
+/* Días con reserva COMPLETADA - Azul */
+.flatpickr-day.flatpickr-day--completed {
+  background: #2196F3 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  border-radius: 50% !important;
+  border: none !important;
+}
+
+.flatpickr-day.flatpickr-day--completed:hover {
+  background: #1976D2 !important;
+  color: #fff !important;
+}
+
+/* Días deshabilitados (reservados) */
+.flatpickr-day.flatpickr-disabled.flatpickr-day--pending,
+.flatpickr-day.flatpickr-disabled.flatpickr-day--completed {
+  cursor: not-allowed !important;
+  opacity: 0.85 !important;
+}
+
+/* Encabezado del calendario */
+.flatpickr-months {
+  background: #007bff !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+.flatpickr-current-month {
+  color: #fff !important;
+}
+
+.flatpickr-prev-month,
+.flatpickr-next-month {
+  fill: #fff !important;
+}
+
+.flatpickr-prev-month:hover,
+.flatpickr-next-month:hover {
+  fill: #e0e0e0 !important;
+}
+
+/* Días de la semana */
+.flatpickr-weekday {
+  color: #666 !important;
+  font-weight: 600 !important;
+}
+
+/* Día actual */
+.flatpickr-day.today {
+  border: 2px solid #007bff !important;
+}
+
+/* Día seleccionado */
+.flatpickr-day.selected {
+  background: #007bff !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  border: none !important;
+}
+
+/* Input del calendario */
+#checkInCalendar,
+#checkOutCalendar {
+  cursor: pointer !important;
+  background-color: #fff !important;
+}
+
+#checkInCalendar:focus,
+#checkOutCalendar:focus {
+  border-color: #007bff !important;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+}
+
+/* Animación suave */
+.flatpickr-day {
+  transition: all 0.2s ease !important;
+}
+
+/* Asegurar que los estilos inline tengan prioridad */
+.flatpickr-day[style] {
+  border-radius: 50% !important;
+}
+
+::ng-deep .flatpickr-day--pending {
+  background-color: #ffc107 !important;
+  color: #000 !important;
+  font-weight: 600 !important;
+  border-radius: 50% !important;
+}
+
+::ng-deep .flatpickr-day--completed {
+  background-color: #2196F3 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  border-radius: 50% !important;
+}
+
