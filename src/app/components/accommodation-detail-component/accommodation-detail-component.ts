@@ -9,7 +9,6 @@ import { MapService } from '../../services/map-service';
 import { ReservationService } from '../../services/reservation.service';
 import { CreateReservationDTO } from '../../models/reservation.model';
 import { ReservationDTO } from '../../models/reservation.model';
-import { FlatpickrModule } from 'angularx-flatpickr';
 import flatpickr from 'flatpickr';
 import { Spanish } from 'flatpickr/dist/l10n/es.js';
 import 'flatpickr/dist/flatpickr.min.css';
@@ -26,6 +25,9 @@ export class AccommodationDetailComponent implements OnInit,AfterViewInit {
   private mapService = inject(MapService);
   private reservationService = inject(ReservationService);
   private mapInitialized = signal(false);
+  private calendarInstance: flatpickr.Instance | null | undefined;
+private checkInCalendar: flatpickr.Instance | any;
+private checkOutCalendar: flatpickr.Instance | any;
 
   
 
@@ -42,7 +44,7 @@ export class AccommodationDetailComponent implements OnInit,AfterViewInit {
   checkOutDate = signal<string>('');
   guests = signal<number>(1);
 
-  // Eliminado: Estados del Toast. Usaremos SweetAlert2
+
 
   // Fecha mínima (hoy)
   minDate = computed(() => {
@@ -272,42 +274,93 @@ onReserve(): void {
     }).format(amount);
   }
 
-    private loadReservations(accommodationId: number) {
-    this.reservationService.getByAccommodation(accommodationId).subscribe({
-      next: (res) => {
-        const content = (res as any).content ?? res;
-        this.reservations.set(content);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
-      },
-    });
-  }
+   private loadReservations(accommodationId: number) {
+  this.reservationService.getByAccommodation(accommodationId).subscribe({
+    next: (res) => {
+      const content = (res as any).content ?? res;
+      this.reservations.set(content);
+      this.loading.set(false);
 
-  /** Inicializa Flatpickr con colores */
-  private initializeCalendar(): void {
-    flatpickr('#calendar', {
-      locale: Spanish,
-      dateFormat: 'Y-m-d',
-      inline: true, // calendario visible siempre
-      onDayCreate: (_dObj, _dStr, fp, dayElem) => {
-        const date = dayElem.dateObj.toISOString().split('T')[0];
-        const status = this.getDateStatus(date);
+      // Espera un tick para que Angular pinte el HTML antes de inicializar Flatpickr
+      setTimeout(() => this.initializeCalendar(), 200);
+    },
+    error: () => {
+      this.loading.set(false);
+    },
+  });
+}
 
-        if (status === 'pending') {
-          dayElem.classList.add('flatpickr-day--pending');
-        } else if (status === 'completed') {
-          dayElem.classList.add('flatpickr-day--completed');
+
+private initializeCalendar(): void {
+  const reservedRanges = this.reservations().map((r) => ({
+    from: r.startDate.split('T')[0],
+    to: r.endDate.split('T')[0],
+    status: r.status,
+  }));
+
+  const baseConfig: flatpickr.Options.Options = {
+    minDate: 'today',
+    locale: Spanish,
+    dateFormat: 'Y-m-d',
+
+    onDayCreate: (dObj, dStr, fp, dayElem) => {
+      const dateStr = fp.formatDate(dayElem.dateObj, 'Y-m-d');
+
+      for (const r of reservedRanges) {
+        if (dateStr >= r.from && dateStr <= r.to) {
+          // Colorea según el estado
+          if (r.status === 'PENDING') {
+            dayElem.classList.add('flatpickr-day--pending');
+          } else if (r.status === 'COMPLETED') {
+            dayElem.classList.add('flatpickr-day--completed');
+          }
+
+          // Desactiva selección
+          dayElem.classList.add('flatpickr-disabled');
+          dayElem.setAttribute('aria-disabled', 'true');
+          dayElem.style.pointerEvents = 'none';
         }
-      },
-      onChange: (selectedDates) => {
-        if (selectedDates.length > 0) {
-          this.checkInDate.set(selectedDates[0].toISOString().split('T')[0]);
+      }
+    },
+  };
+
+  // Configuración de Check-in
+  const inConfig: flatpickr.Options.Options = {
+    ...baseConfig,
+    onChange: (dates) => {
+      if (dates.length) {
+        const date = dates[0];
+        this.checkInDate.set(date.toISOString().split('T')[0]);
+        if (this.checkOutCalendar) {
+          this.checkOutCalendar.set('minDate', date);
         }
-      },
-    });
-  }
+      }
+    },
+  };
+
+  // Configuración de Check-out
+  const outConfig: flatpickr.Options.Options = {
+    ...baseConfig,
+    onChange: (dates) => {
+      if (dates.length) {
+        const date = dates[0];
+        this.checkOutDate.set(date.toISOString().split('T')[0]);
+      }
+    },
+  };
+
+  // Destruye instancias previas si existen
+  if (this.checkInCalendar) this.checkInCalendar.destroy();
+  if (this.checkOutCalendar) this.checkOutCalendar.destroy();
+
+  // Inicializa los calendarios
+  this.checkInCalendar = flatpickr('#checkInCalendar', inConfig);
+  this.checkOutCalendar = flatpickr('#checkOutCalendar', outConfig);
+}
+
+
+
+ 
 
   getDateStatus(date: string): 'completed' | 'pending' | null {
     if (!date) return null;
