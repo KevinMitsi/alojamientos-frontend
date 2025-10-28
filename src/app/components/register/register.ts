@@ -12,6 +12,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { RegisterUserDTO } from '../../models/user.model';
 import { finalize } from 'rxjs/operators';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-register',
@@ -23,12 +24,6 @@ import { finalize } from 'rxjs/operators';
 export class Register {
   registerForm: FormGroup;
   loading = false;
-
-  // Toast (notificación)
-  showToast = false;
-  toastType: 'success' | 'error' = 'success';
-  toastMessage = '';
-  private submittedSuccessfully = false; // evita repetir onSubmit tras éxito
 
   constructor(
     private fb: FormBuilder,
@@ -63,24 +58,17 @@ export class Register {
   get password() { return this.registerForm.get('password'); }
   get confirmPassword() { return this.registerForm.get('confirmPassword'); }
 
-  // Mostrar toast (notificación)
-  showToastMessage(type: 'success' | 'error', message: string): void {
-    this.toastType = type;
-    this.toastMessage = message;
-    this.showToast = true;
-
-    setTimeout(() => {
-      this.showToast = false;
-    }, 4000);
-  }
-
   // Envío del formulario
   onSubmit(): void {
-    if (this.submittedSuccessfully) return; // evita doble ejecución
-
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
-      this.showToastMessage('error', 'Por favor completa los campos correctamente.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Formulario incompleto',
+        text: 'Por favor completa todos los campos correctamente',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#3085d6'
+      });
       return;
     }
 
@@ -89,7 +77,13 @@ export class Register {
     let isoDate: string;
 
     if (!rawDate) {
-      this.showToastMessage('error', 'Fecha de nacimiento inválida.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Fecha de nacimiento inválida.',
+        confirmButtonText: 'Reintentar',
+        confirmButtonColor: '#d33'
+      });
       return;
     } else if (typeof rawDate === 'string' && rawDate.includes('T')) {
       isoDate = new Date(rawDate).toISOString().slice(0, 10);
@@ -114,33 +108,83 @@ export class Register {
       .subscribe({
         next: (res) => {
           console.log('✅ Registro exitoso:', res);
-          this.submittedSuccessfully = true;
-
-          this.showToastMessage('success', '¡Usuario registrado exitosamente!');
-
-          // Limpiar el formulario antes de redirigir
-          this.registerForm.reset();
-
-          // Esperar a que se vea el mensaje y luego redirigir
-          setTimeout(() => {
-            this.showToast = false;
+          Swal.fire({
+            icon: 'success',
+            title: '¡Registro exitoso!',
+            text: 'Usuario registrado correctamente',
+            timer: 1500,
+            showConfirmButton: false
+          }).then(() => {
+            this.registerForm.reset();
             this.router.navigate(['/login']);
-          }, 2500);
+          });
         },
         error: (err) => {
           console.error('❌ Error al registrar:', err);
-          let msg = 'Error en el servidor. Intenta más tarde.';
+          let errorTitle = 'Error al registrar';
+          let errorMessage = 'Error en el servidor. Intenta más tarde.';
+          let errorHtml = '';
 
-          if (err?.status === 400 || err?.status === 422) {
-            if (err.error) {
-              if (typeof err.error === 'string') msg = err.error;
-              else if (err.error.message) msg = err.error.message;
-              else if (err.error.errors) msg = Object.values(err.error.errors).flat().join(' | ');
-              else msg = 'Datos inválidos. Revisa los campos.';
+          // Si la respuesta es un string plano
+          let camposConError: any = null;
+          let violaciones: any = null;
+          if (typeof err?.error === 'string') {
+            errorMessage = err.error;
+          } else if (err?.error) {
+            // Si es un objeto tipo ResponseErrorDTO
+            const backend = err.error;
+            if (backend.message) errorMessage = backend.message;
+
+            // Detalles de validación de campos
+            if (backend.details) {
+              // Campos con error (DTO)
+              if (backend.details.camposConError) {
+                camposConError = backend.details.camposConError;
+                errorHtml += '<ul style="text-align:left">';
+                for (const campo in camposConError) {
+                  errorHtml += `<li><b>${campo}:</b> ${camposConError[campo]}</li>`;
+                }
+                errorHtml += '</ul>';
+              }
+              // Violaciones (params)
+              if (backend.details.violaciones) {
+                violaciones = backend.details.violaciones;
+                errorHtml += '<ul style="text-align:left">';
+                for (const campo in violaciones) {
+                  errorHtml += `<li><b>${campo}:</b> ${violaciones[campo]}</li>`;
+                }
+                errorHtml += '</ul>';
+              }
+              // Detalle simple
+              if (backend.details.detalle) {
+                errorHtml += `<div style="text-align:left">${backend.details.detalle}</div>`;
+              }
             }
-          } else if (err?.status === 0) msg = 'No se pudo conectar con el servidor.';
+          } else if (err?.status === 0) {
+            errorMessage = 'No se pudo conectar con el servidor.';
+          }
 
-          this.showToastMessage('error', msg);
+          // Limpiar solo los campos de contraseña si el error es de contraseña
+          let limpiarPassword = false;
+          if (camposConError && (camposConError['password'] || camposConError['confirmPassword'])) {
+            limpiarPassword = true;
+          }
+          if (violaciones && (violaciones['password'] || violaciones['confirmPassword'])) {
+            limpiarPassword = true;
+          }
+          if (limpiarPassword) {
+            this.registerForm.patchValue({ password: '', confirmPassword: '' });
+            this.registerForm.get('password')?.markAsPristine();
+            this.registerForm.get('confirmPassword')?.markAsPristine();
+          }
+
+          Swal.fire({
+            icon: 'error',
+            title: errorTitle,
+            html: `<div style='margin-bottom:8px;'>${errorMessage}</div>${errorHtml}`,
+            confirmButtonText: 'Reintentar',
+            confirmButtonColor: '#d33'
+          });
         }
       });
   }
