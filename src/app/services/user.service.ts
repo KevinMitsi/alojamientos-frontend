@@ -30,10 +30,26 @@ export class UserService {
     responseType: 'text'
   });
 }
-
-
   // 🔹 Eliminar imagen de perfil
   deleteProfileImage(): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/profile-image`);
+  }
+  // 🔹 Cambiar contraseña (PasswordChangeDTO)
+  changePassword(passwordChange: { currentPassword: string; newPassword: string }): Observable<string> {
+    return this.http.put<string>(`${this.baseUrl}/password`, passwordChange);
+  }
+
+  // 🔹 Subir documentos
+  uploadDocuments(documents: File[]): Observable<string[]> {
+    const formData = new FormData();
+    documents.forEach((doc, i) => {
+      formData.append('documents', doc, doc.name);
+    });
+    return this.http.post<string[]>(`${this.baseUrl}/documents`, formData);
+  }
+
+  // 🔹 Eliminar documento
+  deleteDocument(documentIndex: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/documents/${documentIndex}`);
   }
 }

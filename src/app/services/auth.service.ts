@@ -37,4 +37,14 @@ export class AuthService {
   getCurrentUser(): Observable<User> {
     return this.http.get<User>(`${this.baseUrl}/me`);
   }
+
+  // 🔹 Renovar token JWT
+  refreshToken(refreshToken: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.baseUrl}/refresh?refreshToken=${encodeURIComponent(refreshToken)}`, {});
+  }
+
+  // 🔹 Convertirse en HOST
+  becomeHost(): Observable<User> {
+    return this.http.put<User>(`${this.baseUrl}/become-host`, {});
+  }
 }
