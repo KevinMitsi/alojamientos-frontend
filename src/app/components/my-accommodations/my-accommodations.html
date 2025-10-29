@@ -24,7 +24,15 @@
 
   <!-- Lista de alojamientos -->
   <div class="accommodations-section">
-    <h2 class="section-title">Mis Alojamientos</h2>
+    <div class="section-header">
+      <h2 class="section-title">Mis Alojamientos</h2>
+      @if (accommodations.length > 0) {
+        <button class="btn btn-create-accommodation" (click)="createAccommodation()">
+          <i class="bi bi-plus-circle me-2"></i>
+          Crear alojamiento
+        </button>
+      }
+    </div>
     
     @if (isLoading) {
       <div class="loading-spinner">
@@ -32,13 +40,19 @@
           <span class="visually-hidden">Cargando...</span>
         </div>
       </div>
-    } @else if (accommodations.length === 0) {
+    }
+    @if (!isLoading && accommodations.length === 0) {
       <div class="empty-state">
         <i class="bi bi-house-slash"></i>
         <h3>No tienes alojamientos registrados</h3>
         <p>Comienza publicando tu primer alojamiento</p>
+        <button class="btn btn-create-first" (click)="createAccommodation()">
+          <i class="bi bi-plus-circle me-2"></i>
+          Crea tu primer alojamiento
+        </button>
       </div>
-    } @else {
+    }
+    @if (!isLoading && accommodations.length > 0) {
       <div class="accommodations-list">
         @for (accommodation of accommodations; track accommodation.id) {
           <div class="accommodation-card">

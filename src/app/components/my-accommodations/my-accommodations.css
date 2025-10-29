@@ -2,7 +2,6 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
 }
 
@@ -13,6 +12,9 @@
   align-items: center;
   margin-bottom: 2rem;
   background: white;
+  border-color: #febb02;
+  border-style: solid;
+  border-width: 2px;
   padding: 2rem;
   border-radius: 16px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -58,12 +60,16 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   display: flex;
   gap: 2rem;
+   border-color: #febb02;
+  border-style: solid;
+  border-width: 2px;
 }
 
 .stat-item {
   display: flex;
   align-items: center;
   gap: 1rem;
+  
 }
 
 .stat-item i {
@@ -89,17 +95,72 @@
 
 /* Accommodations Section */
 .accommodations-section {
+  border-color: #febb02;
+  border-style: solid;
+  border-width: 2px;
   background: white;
   padding: 2rem;
   border-radius: 16px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
 .section-title {
   font-size: 1.75rem;
   font-weight: 700;
   color: #2d3748;
-  margin-bottom: 1.5rem;
+  margin: 0;
+}
+
+.btn-create-accommodation {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  padding: 0.875rem 1.75rem;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(72, 187, 120, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-create-accommodation:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(72, 187, 120, 0.4);
+  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+}
+
+.btn-create-first {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(72, 187, 120, 0.3);
+  margin-top: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-create-first:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(72, 187, 120, 0.4);
+  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
 }
 
 /* Loading Spinner */

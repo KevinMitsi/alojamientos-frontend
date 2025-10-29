@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AccommodationService } from '../../services/accommodation.service';
@@ -6,6 +6,8 @@ import { AuthService } from '../../services/auth.service';
 import { AccommodationDTO, PageResponse } from '../../models/accommodation.model';
 import { User } from '../../models/user.model';
 import Swal from 'sweetalert2';
+import { timeout, finalize, catchError } from 'rxjs';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-my-accommodations',
@@ -14,10 +16,12 @@ import Swal from 'sweetalert2';
   templateUrl: './my-accommodations.html',
   styleUrl: './my-accommodations.css'
 })
-export class MyAccommodations implements OnInit {
+export class MyAccommodations implements OnInit, OnDestroy {
+  private routerEventsSub: any;
   private readonly accommodationService = inject(AccommodationService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   currentUser: User | null = null;
   accommodations: AccommodationDTO[] = [];
@@ -33,6 +37,19 @@ export class MyAccommodations implements OnInit {
   ngOnInit(): void {
     this.loadCurrentUser();
     this.loadAccommodations();
+    // Suscribirse a eventos de navegación para recargar si se navega a la misma ruta
+    this.routerEventsSub = this.router.events.subscribe((event: any) => {
+      if (event.constructor.name === 'NavigationEnd') {
+        this.loadCurrentUser();
+        this.loadAccommodations();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.routerEventsSub) {
+      this.routerEventsSub.unsubscribe();
+    }
   }
 
   loadCurrentUser(): void {
@@ -52,24 +69,71 @@ export class MyAccommodations implements OnInit {
   }
 
   loadAccommodations(): void {
+    console.log('🔄 loadAccommodations llamado - isLoading:', this.isLoading);
     this.isLoading = true;
-    this.accommodationService.findByHost(this.currentPage, this.pageSize).subscribe({
-      next: (response: PageResponse<AccommodationDTO>) => {
-        this.accommodations = response.content;
-        this.totalPages = response.totalPages;
-        this.totalElements = response.totalElements;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error al cargar alojamientos:', error);
-        this.isLoading = false;
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar tus alojamientos'
-        });
-      }
-    });
+    console.log('✅ isLoading establecido a true');
+    
+    this.accommodationService.findByHost(this.currentPage, this.pageSize)
+      .pipe(
+        timeout(10000), // Aumentado a 10 segundos
+        catchError((error) => {
+          console.error('Error en catchError:', error);
+          
+          if (error.name === 'TimeoutError') {
+            Swal.fire({
+              icon: 'error',
+              title: 'Tiempo de espera excedido',
+              text: 'El servidor tardó demasiado en responder. Intenta de nuevo más tarde.'
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'No se pudieron cargar tus alojamientos'
+            });
+          }
+          
+          // Retornar un observable con respuesta vacía para que el flujo continúe
+          return of({
+            content: [],
+            totalPages: 0,
+            totalElements: 0,
+            empty: true,
+            first: true,
+            last: true,
+            number: 0,
+            numberOfElements: 0,
+            size: this.pageSize,
+            pageable: {
+              pageNumber: 0,
+              pageSize: this.pageSize,
+              sort: { empty: true, sorted: false, unsorted: true },
+              offset: 0,
+              paged: true,
+              unpaged: false
+            },
+            sort: { empty: true, sorted: false, unsorted: true }
+          } as PageResponse<AccommodationDTO>);
+        }),
+        finalize(() => {
+          console.log('Finalize ejecutado - isLoading antes:', this.isLoading);
+          this.isLoading = false;
+          console.log('Finalize ejecutado - isLoading después:', this.isLoading);
+          this.cdr.detectChanges(); // Forzar detección de cambios
+        })
+      )
+      .subscribe({
+        next: (response: PageResponse<AccommodationDTO>) => {
+          console.log('Respuesta de alojamientos:', response);
+          this.accommodations = response.content || [];
+          this.totalPages = response.totalPages || 0;
+          this.totalElements = response.totalElements || 0;
+        },
+        error: (error) => {
+          // Este error NO debería ejecutarse porque catchError lo maneja
+          console.error('Error en subscribe (no debería llegar aquí):', error);
+        }
+      });
   }
 
   goToPage(page: number): void {
@@ -142,6 +206,10 @@ export class MyAccommodations implements OnInit {
 
   goToReservations(): void {
     this.router.navigate(['/reservation']);
+  }
+
+  createAccommodation(): void {
+    this.router.navigate(['/crear-alojamiento']);
   }
 
   getPrimaryImage(accommodation: AccommodationDTO): string {
