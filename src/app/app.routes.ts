@@ -6,6 +6,7 @@ import { Register } from './components/register/register';
 import { Profile } from './components/profile/profile';
 import { Reservations } from './components/reservations/reservations';
 import { ConfigAccountComponent } from './components/config-account-component/config-account-component';
+import { MyAccommodations } from './components/my-accommodations/my-accommodations';
 
 export const routes: Routes = [
   // Ruta principal - muestra la página principal con las cards
@@ -33,6 +34,9 @@ export const routes: Routes = [
    {path: 'reservation', component: Reservations},
 
    {path: 'configuracion', component: ConfigAccountComponent, runGuardsAndResolvers: 'always'},
+
+   // Ruta para mis alojamientos (solo para hosts)
+   {path: 'mis-alojamientos', component: MyAccommodations, runGuardsAndResolvers: 'always'},
 
   // Ruta wildcard - redirige cualquier ruta no encontrada a la página principal
   {

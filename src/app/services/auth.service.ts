@@ -47,4 +47,5 @@ export class AuthService {
   becomeHost(): Observable<User> {
     return this.http.put<User>(`${this.baseUrl}/become-host`, {});
   }
+  
 }
