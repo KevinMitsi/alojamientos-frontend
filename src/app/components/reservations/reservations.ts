@@ -1,11 +1,15 @@
+// src/app/components/reservations/reservations.ts
+
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ReservationService } from '../../services/reservation.service';
+import { MercadoPagoService } from '../../services/mercado-pago.service';
 import { ReservationDTO } from '../../models/reservation.model';
 import { CommonModule, DatePipe, DecimalPipe, NgClass, NgOptimizedImage } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AccommodationService } from '../../services/accommodation.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-reservations',
@@ -22,6 +26,7 @@ export class Reservations implements OnInit {
 
   constructor(
     private reservationService: ReservationService,
+    private mercadoPagoService: MercadoPagoService,
     private accommodationService: AccommodationService,
     private router: Router,
     private cdr: ChangeDetectorRef   
@@ -29,6 +34,7 @@ export class Reservations implements OnInit {
 
   ngOnInit(): void {
     this.loadReservations();
+    this.checkPaymentStatus();
   }
 
   loadReservations(): void {
@@ -79,7 +85,6 @@ export class Reservations implements OnInit {
             this.reservations = [...this.reservations];
             this.loading = false;
 
-          
             this.cdr.detectChanges();
           },
           error: () => {
@@ -98,29 +103,212 @@ export class Reservations implements OnInit {
     });
   }
 
+  /**
+   * Iniciar proceso de pago con MercadoPago
+   */
   payReservation(reservationId: number): void {
-    this.reservationService.payReservation(reservationId).subscribe({
-      next: (res) => {
-        window.location.href = res.paymentUrl;
+    // Mostrar loading
+    Swal.fire({
+      title: 'Procesando...',
+      text: 'Creando preferencia de pago en MercadoPago',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    // Crear preferencia de pago en MercadoPago
+    this.mercadoPagoService.createPreference(reservationId).subscribe({
+      next: (paymentUrl: string) => {
+        console.log('✅ URL de pago recibida:', paymentUrl);
+        
+        // Cerrar el loading
+        Swal.close();
+        
+        // Guardar el ID de la reserva en localStorage para verificar después
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.setItem('pending_payment_reservation', reservationId.toString());
+        }
+
+        // Mostrar confirmación antes de redirigir
+        Swal.fire({
+          icon: 'success',
+          title: '¡Listo para pagar!',
+          html: `
+            <p>Serás redirigido a MercadoPago para completar tu pago de forma segura.</p>
+            <small class="text-muted">Puedes usar las tarjetas de prueba proporcionadas</small>
+          `,
+          showConfirmButton: true,
+          confirmButtonText: 'Ir a pagar',
+          confirmButtonColor: '#0069d9',
+          showCancelButton: true,
+          cancelButtonText: 'Cancelar'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Redirigir a MercadoPago
+            window.location.href = paymentUrl;
+          }
+        });
       },
       error: (err) => {
-        console.error('Error al iniciar el pago', err);
-        this.errorMessage = 'No se pudo iniciar el pago. Intenta nuevamente.';
-      },
+        console.error('❌ Error al iniciar el pago:', err);
+        
+        let errorMessage = 'No se pudo iniciar el proceso de pago.';
+        
+        // Intentar extraer mensaje de error específico
+        if (err.error) {
+          if (typeof err.error === 'string') {
+            errorMessage = err.error;
+          } else if (err.error.error) {
+            errorMessage = err.error.error;
+          } else if (err.error.message) {
+            errorMessage = err.error.message;
+          }
+        }
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al procesar el pago',
+          html: `
+            <p><strong>${errorMessage}</strong></p>
+            <hr>
+            <small class="text-muted">
+              <strong>Posibles causas:</strong><br>
+              • Token de MercadoPago inválido o expirado<br>
+              • Conexión con MercadoPago interrumpida<br>
+              • Datos de la reserva incompletos
+            </small>
+          `,
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#dc3545',
+          footer: '<a href="https://www.mercadopago.com.co/developers" target="_blank">Ver documentación de MercadoPago</a>'
+        });
+
+        this.errorMessage = errorMessage;
+        this.cdr.detectChanges();
+      }
     });
   }
 
-  cancelReservation(reservationId: number): void {
-    const motivo = prompt('¿Por qué deseas cancelar esta reserva?');
-    if (motivo) {
-      this.reservationService.cancel(reservationId, motivo).subscribe({
-        next: () => this.loadReservations(),
-        error: (err) => {
-          console.error('Error al cancelar reserva', err);
-          this.errorMessage = 'No se pudo cancelar la reserva.';
-          this.cdr.detectChanges();
-        },
-      });
+  /**
+   * Verificar si hay un pago pendiente de confirmación
+   * (cuando el usuario regresa de MercadoPago)
+   */
+  checkPaymentStatus(): void {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+
+    // Verificar parámetros de la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('status');
+    const reservationId = window.localStorage.getItem('pending_payment_reservation');
+
+    if (status && reservationId) {
+      const resId = parseInt(reservationId, 10);
+
+      if (status === 'approved' || status === 'COMPLETED') {
+        // Confirmar el pago en el backend
+        this.mercadoPagoService.confirmPayment(resId, 'COMPLETED').subscribe({
+          next: () => {
+            // Limpiar localStorage
+            window.localStorage.removeItem('pending_payment_reservation');
+
+            // Mostrar éxito
+            Swal.fire({
+              icon: 'success',
+              title: '¡Pago exitoso!',
+              text: 'Tu reserva ha sido confirmada',
+              confirmButtonText: 'Ver mis reservas'
+            }).then(() => {
+              // Recargar reservas
+              this.loadReservations();
+              
+              // Limpiar URL
+              window.history.replaceState({}, document.title, window.location.pathname);
+            });
+          },
+          error: (err) => {
+            console.error('Error al confirmar pago:', err);
+            Swal.fire({
+              icon: 'warning',
+              title: 'Pago procesado',
+              text: 'El pago fue procesado pero hubo un problema al actualizar tu reserva. Contacta con soporte.',
+              confirmButtonText: 'Entendido'
+            });
+          }
+        });
+      } else if (status === 'pending') {
+        window.localStorage.removeItem('pending_payment_reservation');
+        Swal.fire({
+          icon: 'info',
+          title: 'Pago pendiente',
+          text: 'Tu pago está siendo procesado. Te notificaremos cuando se complete.',
+          confirmButtonText: 'Entendido'
+        });
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (status === 'failure' || status === 'rejected') {
+        window.localStorage.removeItem('pending_payment_reservation');
+        Swal.fire({
+          icon: 'error',
+          title: 'Pago rechazado',
+          text: 'El pago no pudo ser procesado. Por favor, intenta nuevamente.',
+          confirmButtonText: 'Entendido'
+        });
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
     }
+  }
+
+  cancelReservation(reservationId: number): void {
+    Swal.fire({
+      title: '¿Cancelar reserva?',
+      text: '¿Por qué deseas cancelar esta reserva?',
+      input: 'textarea',
+      inputPlaceholder: 'Escribe el motivo de la cancelación...',
+      showCancelButton: true,
+      confirmButtonText: 'Cancelar reserva',
+      cancelButtonText: 'Volver',
+      confirmButtonColor: '#dc3545',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'Debes escribir un motivo';
+        }
+        return null;
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const motivo = result.value;
+
+        Swal.fire({
+          title: 'Cancelando...',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        this.reservationService.cancel(reservationId, motivo).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Reserva cancelada',
+              text: 'Tu reserva ha sido cancelada exitosamente',
+              confirmButtonText: 'Entendido'
+            }).then(() => {
+              this.loadReservations();
+            });
+          },
+          error: (err) => {
+            console.error('Error al cancelar reserva', err);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error al cancelar',
+              text: err.error?.message || 'No se pudo cancelar la reserva. Intenta nuevamente.',
+              confirmButtonText: 'Entendido'
+            });
+            this.cdr.detectChanges();
+          }
+        });
+      }
+    });
   }
 }
