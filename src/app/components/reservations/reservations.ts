@@ -194,49 +194,45 @@ export class Reservations implements OnInit {
    * Verificar si hay un pago pendiente de confirmación
    * (cuando el usuario regresa de MercadoPago)
    */
-  checkPaymentStatus(): void {
-    if (typeof window === 'undefined' || !window.localStorage) return;
+checkPaymentStatus(): void {
+  if (typeof window === 'undefined') return;
 
-    // Verificar parámetros de la URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const status = urlParams.get('status');
-    const reservationId = window.localStorage.getItem('pending_payment_reservation');
+  const urlParams = new URLSearchParams(window.location.search);
+  const status = urlParams.get('status');
+  const reservationId = urlParams.get('reservationId') || window.localStorage.getItem('pending_payment_reservation');
 
-    if (status && reservationId) {
-      const resId = parseInt(reservationId, 10);
+  if (!status || !reservationId) return;
 
-      if (status === 'approved' || status === 'COMPLETED') {
-        // Confirmar el pago en el backend
-        this.mercadoPagoService.confirmPayment(resId, 'COMPLETED').subscribe({
-          next: () => {
-            // Limpiar localStorage
-            window.localStorage.removeItem('pending_payment_reservation');
+  const resId = parseInt(reservationId, 10);
 
-            // Mostrar éxito
-            Swal.fire({
-              icon: 'success',
-              title: '¡Pago exitoso!',
-              text: 'Tu reserva ha sido confirmada',
-              confirmButtonText: 'Ver mis reservas'
-            }).then(() => {
-              // Recargar reservas
-              this.loadReservations();
-              
-              // Limpiar URL
-              window.history.replaceState({}, document.title, window.location.pathname);
-            });
-          },
-          error: (err) => {
-            console.error('Error al confirmar pago:', err);
-            Swal.fire({
-              icon: 'warning',
-              title: 'Pago procesado',
-              text: 'El pago fue procesado pero hubo un problema al actualizar tu reserva. Contacta con soporte.',
-              confirmButtonText: 'Entendido'
-            });
-          }
+  if (status === 'approved' || status === 'COMPLETED') {
+    // Confirmar el pago
+    this.mercadoPagoService.confirmPayment(resId, 'COMPLETED').subscribe({
+      next: () => {
+        window.localStorage.removeItem('pending_payment_reservation');
+        Swal.fire({
+          icon: 'success',
+          title: '¡Pago exitoso!',
+          text: 'Tu reserva ha sido confirmada',
+          confirmButtonText: 'Ver mis reservas'
+        }).then(() => {
+          // Espera unos segundos antes de redirigir
+          setTimeout(() => {
+            this.router.navigate(['/reservation']);
+          }, 2500);
         });
-      } else if (status === 'pending') {
+      },
+      error: (err) => {
+        console.error('Error al confirmar pago:', err);
+        Swal.fire({
+          icon: 'warning',
+          title: 'Pago procesado',
+          text: 'El pago fue procesado pero no se actualizó la reserva. Contacta soporte.',
+        });
+      }
+    });
+  }
+       else if (status === 'pending') {
         window.localStorage.removeItem('pending_payment_reservation');
         Swal.fire({
           icon: 'info',
@@ -256,7 +252,7 @@ export class Reservations implements OnInit {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
-  }
+  
 
   cancelReservation(reservationId: number): void {
     Swal.fire({
