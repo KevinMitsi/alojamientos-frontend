@@ -94,12 +94,22 @@ export class Reservations implements OnInit {
           },
         });
       },
-      error: (err) => {
-        this.loading = false;
-        this.errorMessage = 'Error al cargar las reservas.';
-        console.error('Error cargando reservas:', err);
-        this.cdr.detectChanges(); 
-      }
+     error: (err) => {
+  this.loading = false;
+  this.errorMessage = 'Error al cargar las reservas.';
+  console.error('Error cargando reservas:', err);
+
+  // 🔁 Reintento automático en caso de error temporal (por ejemplo, JWT aún no listo)
+  setTimeout(() => {
+    if (!this.reservations.length) {
+      console.log('Reintentando cargar reservas...');
+      this.loadReservations();
+    }
+  }, 1500);
+
+  this.cdr.detectChanges();
+}
+
     });
   }
 
@@ -206,32 +216,32 @@ checkPaymentStatus(): void {
   const resId = parseInt(reservationId, 10);
 
   if (status === 'approved' || status === 'COMPLETED') {
-    // Confirmar el pago
-    this.mercadoPagoService.confirmPayment(resId, 'COMPLETED').subscribe({
-      next: () => {
-        window.localStorage.removeItem('pending_payment_reservation');
-        Swal.fire({
-          icon: 'success',
-          title: '¡Pago exitoso!',
-          text: 'Tu reserva ha sido confirmada',
-          confirmButtonText: 'Ver mis reservas'
-        }).then(() => {
-          // Espera unos segundos antes de redirigir
-          setTimeout(() => {
-            this.router.navigate(['/reservation']);
-          }, 2500);
-        });
-      },
-      error: (err) => {
-        console.error('Error al confirmar pago:', err);
-        Swal.fire({
-          icon: 'warning',
-          title: 'Pago procesado',
-          text: 'El pago fue procesado pero no se actualizó la reserva. Contacta soporte.',
-        });
-      }
-    });
-  }
+  this.mercadoPagoService.confirmPayment(resId, 'COMPLETED').subscribe({
+    next: () => {
+      window.localStorage.removeItem('pending_payment_reservation');
+      Swal.fire({
+        icon: 'success',
+        title: '¡Pago exitoso!',
+        text: 'Tu reserva ha sido confirmada',
+        confirmButtonText: 'Ver mis reservas'
+      }).then(() => {
+        // ✅ Refresca directamente las reservas
+        this.loadReservations();
+        // Limpia los parámetros de la URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      });
+    },
+    error: (err) => {
+      console.error('Error al confirmar pago:', err);
+      Swal.fire({
+        icon: 'warning',
+        title: 'Pago procesado',
+        text: 'El pago fue procesado pero no se actualizó la reserva. Contacta soporte.',
+      });
+    }
+  });
+}
+
        else if (status === 'pending') {
         window.localStorage.removeItem('pending_payment_reservation');
         Swal.fire({
