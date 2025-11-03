@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
+import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../services/user.service';
@@ -31,7 +32,11 @@ export class ConfigAccountComponent {
   uploadSuccess: string = '';
 
 
-  constructor(private userService: UserService, private authService: AuthService) {
+  constructor(
+    private userService: UserService,
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
+  ) {
     this.loadUser();
   }
 
@@ -52,18 +57,20 @@ export class ConfigAccountComponent {
           this.userTypeLabel = 'USER';
         }
         this.loadDocuments();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error al obtener usuario:', err);
         this.user = null;
         this.userTypeLabel = '';
         this.userDocuments = [];
+        this.cdr.detectChanges();
       }
     });
   }
 
   loadDocuments() {
-    // Suponiendo que los documentos están en user.documents (ajusta si es diferente)
+
   this.userDocuments = this.user?.documentsUrl || [];
   }
 
@@ -123,4 +130,27 @@ export class ConfigAccountComponent {
       }
     });
   }
+
+    onBecomeHost() {
+      if (!this.user) return;
+      this.authService.becomeHost().subscribe({
+        next: () => {
+          this.loadUser();
+          Swal.fire({
+            icon: 'success',
+            title: '¡Felicidades! 🎉',
+            text: 'Ahora eres HOST. Puedes publicar alojamientos.',
+            confirmButtonText: 'Aceptar',
+          });
+        },
+        error: (err) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo convertir a HOST. Intenta de nuevo.',
+            confirmButtonText: 'Cerrar',
+          });
+        }
+      });
+    }
 }

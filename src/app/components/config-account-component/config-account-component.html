@@ -12,9 +12,12 @@
 			<label>Email:</label>
 			<span>{{ user?.email || '' }}</span>
 		</div>
-		<div class="info-row">
-			<label>Tipo de cuenta:</label>
-			<span>{{ userTypeLabel }}</span>
+		<div class="info-row" style="display: flex; align-items: center;">
+			<label style="margin-bottom: 0;">Tipo de cuenta:</label>
+			<span style="margin-left: 8px;">{{ userTypeLabel }}</span>
+			@if (userTypeLabel !== 'HOST') {
+				<button class="btn btn-warning" (click)="onBecomeHost()" style="margin-left: auto;">QUIERO SER HOST</button>
+			}
 		</div>
 	</div>
 
