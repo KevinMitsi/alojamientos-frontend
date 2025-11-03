@@ -38,80 +38,82 @@ export class Reservations implements OnInit {
   }
 
   loadReservations(): void {
-    this.loading = true;
-    this.errorMessage = '';
+  this.loading = true;
+  this.errorMessage = '';
 
-    this.reservationService.findByUser(0, 10).subscribe({
-      next: (res: any) => {
-        this.reservations = res.content || res || [];
+  this.reservationService.findByUser(0, 10).subscribe({
+    next: (res: any) => {
+      this.reservations = res.content || res || [];
 
-        if (!this.reservations || this.reservations.length === 0) {
-          this.loading = false;
-          this.cdr.detectChanges(); 
-          return;
-        }
+      if (!this.reservations || this.reservations.length === 0) {
+        this.loading = false;
+        this.cdr.detectChanges(); 
+        return;
+      }
 
-        const uniqueIds = Array.from(new Set(this.reservations.map(r => r.accommodationId)));
-        const calls = uniqueIds.map(id =>
-          this.accommodationService.findById(id).pipe(
-            catchError(err => {
-              console.error(`Error cargando alojamiento ${id}:`, err);
-              return of(null);
-            })
-          )
-        );
+      const uniqueIds = Array.from(new Set(this.reservations.map(r => r.accommodationId)));
+      const calls = uniqueIds.map(id =>
+        this.accommodationService.findById(id).pipe(
+          catchError(err => {
+            console.error(`Error cargando alojamiento ${id}:`, err);
+            return of(null);
+          })
+        )
+      );
 
-        forkJoin(calls).subscribe({
-          next: (accommodations: any[]) => {
-            const map = new Map<number, any>();
-            accommodations.forEach((acc, idx) => {
-              if (acc) map.set(uniqueIds[idx], acc);
-            });
+      forkJoin(calls).subscribe({
+        next: (accommodations: any[]) => {
+          const map = new Map<number, any>();
+          accommodations.forEach((acc, idx) => {
+            if (acc) map.set(uniqueIds[idx], acc);
+          });
 
-            this.reservations = this.reservations.map(r => {
-              const acc = map.get(r.accommodationId);
-              if (acc) {
-                r.accommodationName = acc.title ?? 'Alojamiento';
-                if (acc.images?.length) {
-                  const primary = acc.images.find((img: any) => img.isPrimary);
-                  r.imageUrl = primary ? primary.url : acc.images[0].url;
-                } else if (acc.primaryImageUrl) {
-                  r.imageUrl = acc.primaryImageUrl;
-                }
+          this.reservations = this.reservations.map(r => {
+            const acc = map.get(r.accommodationId);
+            if (acc) {
+              r.accommodationName = acc.title ?? 'Alojamiento';
+              if (acc.images?.length) {
+                const primary = acc.images.find((img: any) => img.isPrimary);
+                r.imageUrl = primary ? primary.url : acc.images[0].url;
+              } else if (acc.primaryImageUrl) {
+                r.imageUrl = acc.primaryImageUrl;
               }
-              return { ...r };
-            });
+            }
+            return { ...r };
+          });
 
-            this.reservations = [...this.reservations];
-            this.loading = false;
+          this.reservations = [...this.reservations];
+          this.loading = false;
+          this.errorMessage = '';
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.loading = false;
+          this.errorMessage = 'Error al cargar los alojamientos.';
+          this.cdr.detectChanges(); 
+        },
+      });
+    },
+    error: (err) => {
+      console.error('❌ Error cargando reservas:', err);
 
-            this.cdr.detectChanges();
-          },
-          error: () => {
-            this.loading = false;
-            this.errorMessage = 'Error al cargar los alojamientos.';
-            this.cdr.detectChanges(); 
-          },
-        });
-      },
-     error: (err) => {
-  this.loading = false;
-  this.errorMessage = 'Error al cargar las reservas.';
-  console.error('Error cargando reservas:', err);
+      // 👇 NO mostrar el error de inmediato
+      this.errorMessage = '';
+      this.loading = false;
 
-  // 🔁 Reintento automático en caso de error temporal (por ejemplo, JWT aún no listo)
-  setTimeout(() => {
-    if (!this.reservations.length) {
-      console.log('Reintentando cargar reservas...');
-      this.loadReservations();
+      // 🔁 Reintento automático si fue un error temporal (token, sincronización, etc.)
+      setTimeout(() => {
+        if (!this.reservations.length) {
+          console.log('Reintentando cargar reservas...');
+          this.loadReservations();
+        }
+      }, 1500);
+
+      this.cdr.detectChanges();
     }
-  }, 1500);
-
-  this.cdr.detectChanges();
+  });
 }
 
-    });
-  }
 
   /**
    * Iniciar proceso de pago con MercadoPago
