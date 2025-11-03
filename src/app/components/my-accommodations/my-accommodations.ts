@@ -216,4 +216,4 @@ export class MyAccommodations implements OnInit, OnDestroy {
     const primaryImage = accommodation.images?.find(img => img.isPrimary);
     return primaryImage?.url || accommodation.images?.[0]?.url || 'assets/placeholder.jpg';
   }
-}
+} 
