@@ -20,9 +20,13 @@ export class App implements OnInit, OnDestroy {
     this.tokenService.removeToken();
   };
 
-  ngOnInit() {
-    if (typeof window !== 'undefined') {
-      window.addEventListener('beforeunload', this.unloadListener);
+ngOnInit() {
+    const token = this.tokenService.getToken();
+
+    if (token) {
+      console.log('✅ Token detectado en localStorage, usuario sigue logueado.');
+    } else {
+      console.log('⚠️ No hay token guardado, usuario no está logueado.');
     }
   }
 
@@ -32,3 +36,6 @@ export class App implements OnInit, OnDestroy {
     }
   }
 }
+
+
+
