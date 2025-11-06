@@ -1,0 +1,320 @@
+@if (!isLoading) {
+<div class="edit-accommodation-container">
+  <div class="header-section">
+    <h1><i class="fas fa-edit"></i> Editar Alojamiento</h1>
+    <p class="subtitle">{{ accommodation.title }}</p>
+  </div>
+
+  <!-- Sección de Imágenes -->
+  <div class="images-section">
+    <h2 class="section-title">
+      <i class="fas fa-images"></i>
+      Gestión de Imágenes
+    </h2>
+
+    <!-- Imágenes actuales -->
+    @if (accommodation.images && accommodation.images.length > 0) {
+      <div class="current-images">
+        <h3>Imágenes actuales</h3>
+        <div class="images-grid">
+          @for (image of accommodation.images; track image.id) {
+            <div class="image-card">
+              <img [src]="image.url" [alt]="accommodation.title" />
+              <div class="image-overlay">
+                @if (image.isPrimary) {
+                  <span class="primary-badge">
+                    <i class="fas fa-star"></i> Principal
+                  </span>
+                }
+                <button 
+                  type="button" 
+                  class="btn-delete-image"
+                  (click)="deleteImage(image.id)"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Subir nuevas imágenes -->
+    <div class="upload-section">
+      <h3>Agregar nuevas imágenes</h3>
+      
+      <input 
+        type="file" 
+        id="imageUpload"
+        accept="image/*"
+        multiple
+        (change)="onFilesSelected($event)"
+        #fileInput
+      />
+      <label for="imageUpload" class="btn-select-files">
+        <i class="fas fa-folder-open"></i>
+        Seleccionar archivos
+      </label>
+
+      @if (selectedFiles.length > 0) {
+        <div class="primary-checkbox">
+          <input 
+            type="checkbox" 
+            id="isPrimary"
+            [(ngModel)]="isPrimaryImage"
+          />
+          <label for="isPrimary">Marcar como imagen principal</label>
+        </div>
+      }
+    </div>
+
+      <!-- Previews de archivos seleccionados -->
+      @if (previewUrls.length > 0) {
+        <div class="preview-images">
+          <h4>Vista previa ({{ previewUrls.length }} archivo(s))</h4>
+          <div class="previews-grid">
+            @for (url of previewUrls; track url) {
+              <div class="preview-card">
+                <img [src]="url" alt="Preview" />
+              </div>
+            }
+          </div>
+
+          <div class="upload-actions">
+            <button 
+              type="button" 
+              class="btn btn-cancel"
+              (click)="clearSelectedFiles()"
+              [disabled]="isUploadingImages"
+            >
+              <i class="fas fa-times"></i>
+              Cancelar
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-upload"
+              (click)="uploadImages()"
+              [disabled]="isUploadingImages"
+            >
+              @if (!isUploadingImages) {
+                <i class="fas fa-cloud-upload-alt"></i>
+              }
+              @if (isUploadingImages) {
+                <i class="fas fa-spinner fa-spin"></i>
+              }
+              {{ isUploadingImages ? 'Subiendo...' : 'Subir imágenes' }}
+            </button>
+          </div>
+        </div>
+      }
+  </div>
+
+  <!-- Formulario de Edición -->
+  <form class="accommodation-form" (ngSubmit)="onSubmit()" #editFormElement="ngForm">
+    
+    <!-- Información Básica -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <i class="fas fa-info-circle"></i>
+        Información Básica
+      </h2>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="title">Título del alojamiento *</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            [(ngModel)]="editForm.title"
+            required
+            minlength="5"
+            maxlength="200"
+            class="form-control"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="description">Descripción *</label>
+          <textarea
+            id="description"
+            name="description"
+            [(ngModel)]="editForm.description"
+            required
+            minlength="10"
+            maxlength="1000"
+            rows="5"
+            class="form-control"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ubicación -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <i class="fas fa-map-marker-alt"></i>
+        Ubicación
+      </h2>
+
+      <div class="info-row">
+        <label>Ciudad:</label>
+        <span class="info-value">{{ accommodation.city.name }}</span>
+        <small class="info-note">La ciudad no se puede modificar</small>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="address">Dirección *</label>
+          <input
+            type="text"
+            id="address"
+            name="address"
+            [(ngModel)]="editForm.address"
+            required
+            maxlength="300"
+            class="form-control"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half-width">
+          <label for="lat">Latitud *</label>
+          <input
+            type="number"
+            id="lat"
+            name="lat"
+            [(ngModel)]="editForm.coordinates.lat"
+            step="any"
+            required
+            class="form-control"
+          />
+        </div>
+
+        <div class="form-group half-width">
+          <label for="lng">Longitud *</label>
+          <input
+            type="number"
+            id="lng"
+            name="lng"
+            [(ngModel)]="editForm.coordinates.lng"
+            step="any"
+            required
+            class="form-control"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Detalles del Alojamiento -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <i class="fas fa-home"></i>
+        Detalles del Alojamiento
+      </h2>
+
+      <div class="form-row">
+        <div class="form-group half-width">
+          <label for="pricePerNight">Precio por noche (COP) *</label>
+          <input
+            type="number"
+            id="pricePerNight"
+            name="pricePerNight"
+            [(ngModel)]="editForm.pricePerNight"
+            min="1"
+            required
+            class="form-control"
+          />
+        </div>
+
+        <div class="form-group half-width">
+          <label for="maxGuests">Máximo de huéspedes *</label>
+          <input
+            type="number"
+            id="maxGuests"
+            name="maxGuests"
+            [(ngModel)]="editForm.maxGuests"
+            min="1"
+            required
+            class="form-control"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group checkbox-group">
+          <input 
+            type="checkbox" 
+            id="active"
+            name="active"
+            [(ngModel)]="editForm.active"
+          />
+          <label for="active">Alojamiento activo (visible para usuarios)</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Servicios -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <i class="fas fa-concierge-bell"></i>
+        Servicios Disponibles
+      </h2>
+
+      <div class="services-grid">
+        @for (service of availableServices; track service) {
+          <div
+            class="service-item"
+            [class.selected]="isServiceSelected(service)"
+            (click)="toggleService(service)"
+          >
+            <i class="fas fa-check-circle"></i>
+            <span>{{ service }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="form-actions">
+      <button
+        type="button"
+        class="btn btn-cancel"
+        (click)="cancel()"
+        [disabled]="isSubmitting"
+      >
+        <i class="fas fa-times"></i>
+        Cancelar
+      </button>
+
+      <button
+        type="submit"
+        class="btn btn-submit"
+        [disabled]="isSubmitting || !editFormElement.valid"
+      >
+        @if (!isSubmitting) {
+          <i class="fas fa-save"></i>
+        }
+        @if (isSubmitting) {
+          <i class="fas fa-spinner fa-spin"></i>
+        }
+        {{ isSubmitting ? 'Guardando...' : 'Guardar Cambios' }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Loading State -->
+}
+@if (isLoading) {
+  <div class="loading-container">
+    <div class="loading-spinner">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Cargando alojamiento...</p>
+    </div>
+  </div>
+}

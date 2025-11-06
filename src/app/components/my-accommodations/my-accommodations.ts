@@ -162,12 +162,7 @@ export class MyAccommodations implements OnInit, OnDestroy {
   }
 
   editAccommodation(id: number): void {
-    // TODO: Implementar edición de alojamiento
-    Swal.fire({
-      icon: 'info',
-      title: 'Próximamente',
-      text: 'La funcionalidad de edición estará disponible pronto'
-    });
+    this.router.navigate(['/editar-alojamiento', id]);
   }
 
   deleteAccommodation(id: number): void {
@@ -214,6 +209,10 @@ export class MyAccommodations implements OnInit, OnDestroy {
 
   getPrimaryImage(accommodation: AccommodationDTO): string {
     const primaryImage = accommodation.images?.find(img => img.isPrimary);
-    return primaryImage?.url || accommodation.images?.[0]?.url || 'assets/placeholder.jpg';
+    return (
+      primaryImage?.url ||
+      accommodation.images?.[0]?.url ||
+      'https://placehold.co/400x300/e0e0e0/757575?text=Sin+Imagen'
+    );
   }
 } 

@@ -1,88 +1,113 @@
 <div class="account-config-container">
-	<h2 class="text-center mb-4">Configuración de la Cuenta</h2>
+	<div class="header-section">
+		<h2><i class="fas fa-user-cog"></i> Configuración de la Cuenta</h2>
+	</div>
 
 	<!-- Sección de información de perfil -->
 	<div class="account-section">
-		<div class="account-section-title">Perfil</div>
-		<div class="info-row">
-			<label>Nombre:</label>
-			<span>{{ user?.name || '' }}</span>
+		<div class="section-title">
+			<i class="fas fa-user"></i>
+			Perfil
 		</div>
 		<div class="info-row">
-			<label>Email:</label>
-			<span>{{ user?.email || '' }}</span>
+			<label><i class="fas fa-id-card"></i> Nombre:</label>
+			<span class="info-value">{{ user?.name || '' }}</span>
 		</div>
-		<div class="info-row" style="display: flex; align-items: center;">
-			<label style="margin-bottom: 0;">Tipo de cuenta:</label>
-			<span style="margin-left: 8px;">{{ userTypeLabel }}</span>
+		<div class="info-row">
+			<label><i class="fas fa-envelope"></i> Email:</label>
+			<span class="info-value">{{ user?.email || '' }}</span>
+		</div>
+		<div class="info-row account-type-row">
+			<label><i class="fas fa-user-tag"></i> Tipo de cuenta:</label>
+			<span class="badge-account-type" [class.host]="userTypeLabel === 'HOST'">{{ userTypeLabel }}</span>
 			@if (userTypeLabel !== 'HOST') {
-				<button class="btn btn-warning" (click)="onBecomeHost()" style="margin-left: auto;">QUIERO SER HOST</button>
+				<button class="btn btn-warning btn-become-host" (click)="onBecomeHost()">
+					<i class="fas fa-user-plus"></i> Quiero ser host
+				</button>
 			}
 		</div>
 	</div>
 
 	<!-- Sección de cambio de contraseña -->
 	<div class="account-section">
-		<div class="account-section-title">Contraseña</div>
-		<div class="info-row">
-			<label>Contraseña:</label>
-			<div class="password-row">
-				<input type="password" value="********" readonly />
-				<button class="btn btn-secondary" (click)="showChangePassword = !showChangePassword">Cambiar</button>
-			</div>
+		<div class="section-title">
+			<i class="fas fa-lock"></i>
+			Contraseña
 		</div>
-			@if (showChangePassword) {
-				<form class="change-password-form" (ngSubmit)="onChangePassword()">
-					<div class="info-row">
-						<label>Nueva contraseña:</label>
-						<input type="password" [(ngModel)]="newPassword" name="newPassword" required />
-					</div>
-					<div class="info-row">
-						<label>Confirmar contraseña:</label>
-						<input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" required />
-					</div>
-					<div class="button-section">
-						<button class="btn btn-success me-2" type="submit">Guardar</button>
-						<button class="btn btn-danger" type="button" (click)="showChangePassword = false">Cancelar</button>
-					</div>
-					@if (passwordError) {
-						<div style="color: #dc3545; margin-top: 0.5rem;">{{ passwordError }}</div>
-					}
-					@if (passwordSuccess) {
-						<div style="color: #28a745; margin-top: 0.5rem;">{{ passwordSuccess }}</div>
-					}
-				</form>
-			}
+		<div class="info-row password-row">
+			<label><i class="fas fa-key"></i> Contraseña:</label>
+			<input type="password" value="********" readonly />
+			<button class="btn btn-secondary btn-change-password" (click)="showChangePassword = !showChangePassword">
+				<i class="fas fa-edit"></i> Cambiar
+			</button>
+		</div>
+		@if (showChangePassword) {
+			<form class="change-password-form" (ngSubmit)="onChangePassword()">
+				<div class="info-row">
+					<label><i class="fas fa-lock"></i> Nueva contraseña:</label>
+					<input type="password" [(ngModel)]="newPassword" name="newPassword" required />
+				</div>
+				<div class="info-row">
+					<label><i class="fas fa-lock"></i> Confirmar contraseña:</label>
+					<input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" required />
+				</div>
+				<div class="button-section">
+					<button class="btn btn-success me-2" type="submit">
+						<i class="fas fa-save"></i> Guardar
+					</button>
+					<button class="btn btn-danger" type="button" (click)="showChangePassword = false">
+						<i class="fas fa-times"></i> Cancelar
+					</button>
+				</div>
+				@if (passwordError) {
+					<div class="alert alert-danger">{{ passwordError }}</div>
+				}
+				@if (passwordSuccess) {
+					<div class="alert alert-success">{{ passwordSuccess }}</div>
+				}
+			</form>
+		}
 	</div>
 
 	<!-- Sección de documentos -->
 	<div class="account-section">
-		<div class="account-section-title">Documentos</div>
-		<form (ngSubmit)="onUploadDocuments()">
+		<div class="section-title">
+			<i class="fas fa-file-alt"></i>
+			Documentos
+		</div>
+		<form (ngSubmit)="onUploadDocuments()" class="upload-documents-form">
 			<div class="info-row">
-				<label>Agregar documentos (imágenes):</label>
-				<input type="file" (change)="onFileSelected($event)" multiple accept="image/*" />
+				<label><i class="fas fa-upload"></i> Agregar documentos (imágenes):</label>
+				<input type="file" (change)="onFileSelected($event)" multiple accept="image/*" id="fileUpload" style="display:none;" />
+				<label for="fileUpload" class="btn btn-select-files">
+					<i class="fas fa-folder-open"></i> Seleccionar archivos
+				</label>
+				<span class="selected-files-count" *ngIf="selectedFiles.length">{{ selectedFiles.length }} archivo(s) seleccionado(s)</span>
 			</div>
 			<div class="button-section">
-				<button class="btn btn-primary" type="submit" [disabled]="!selectedFiles.length">Subir</button>
+				<button class="btn btn-primary" type="submit" [disabled]="!selectedFiles.length">
+					<i class="fas fa-cloud-upload-alt"></i> Subir
+				</button>
 			</div>
-					@if (uploadError) {
-						<div style="color: #dc3545; margin-top: 0.5rem;">{{ uploadError }}</div>
-					}
-					@if (uploadSuccess) {
-						<div style="color: #28a745; margin-top: 0.5rem;">{{ uploadSuccess }}</div>
-					}
+			@if (uploadError) {
+				<div class="alert alert-danger">{{ uploadError }}</div>
+			}
+			@if (uploadSuccess) {
+				<div class="alert alert-success">{{ uploadSuccess }}</div>
+			}
 		</form>
-			<div class="document-list">
-						@if (userDocuments.length === 0) {
-							<div class="text-secondary">No hay documentos subidos.</div>
-						}
-						@for (doc of userDocuments; track doc; let i = $index) {
-							<div class="document-item">
-								<span>{{ doc }}</span>
-								<button class="btn btn-danger" (click)="onDeleteDocument(i)">Eliminar</button>
-							</div>
-						}
-			</div>
+		<div class="document-list">
+			@if (userDocuments.length === 0) {
+				<div class="text-secondary">No hay documentos subidos.</div>
+			}
+			@for (doc of userDocuments; track doc; let i = $index) {
+				<div class="document-item">
+					<span><i class="fas fa-file-image"></i> {{ doc }}</span>
+					<button class="btn btn-danger btn-delete-document" (click)="onDeleteDocument(i)">
+						<i class="fas fa-trash"></i> Eliminar
+					</button>
+				</div>
+			}
+		</div>
 	</div>
 </div>

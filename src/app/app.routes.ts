@@ -8,6 +8,7 @@ import { Reservations } from './components/reservations/reservations';
 import { ConfigAccountComponent } from './components/config-account-component/config-account-component';
 import { MyAccommodations } from './components/my-accommodations/my-accommodations';
 import { CreateAccommodation } from './components/create-accommodation/create-accommodation';
+import { EditAccommodation } from './components/edit-accommodation/edit-accommodation';
 import { authGuard } from './guards/auth.guard';
 import { hostGuard } from './guards/host.guard';
 
@@ -55,6 +56,14 @@ export const routes: Routes = [
    {
      path: 'crear-alojamiento', 
      component: CreateAccommodation, 
+     canActivate: [hostGuard],
+     runGuardsAndResolvers: 'always'
+   },
+
+   // Ruta para editar alojamiento (solo para hosts)
+   {
+     path: 'editar-alojamiento/:id', 
+     component: EditAccommodation, 
      canActivate: [hostGuard],
      runGuardsAndResolvers: 'always'
    },
