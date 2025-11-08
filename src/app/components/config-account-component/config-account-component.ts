@@ -23,6 +23,7 @@ export class ConfigAccountComponent {
   // Contraseña
   newPassword: string = '';
   confirmPassword: string = '';
+  passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]+$/;
   passwordError: string = '';
   passwordSuccess: string = '';
 
@@ -83,6 +84,14 @@ export class ConfigAccountComponent {
     }
     if (this.newPassword !== this.confirmPassword) {
       this.passwordError = 'Las contraseñas no coinciden.';
+      return;
+    }
+    if (this.newPassword.length < 8 || this.newPassword.length > 20) {
+      this.passwordError = 'La contraseña debe tener entre 8 y 20 caracteres.';
+      return;
+    }
+    if (!this.passwordPattern.test(this.newPassword)) {
+      this.passwordError = 'La contraseña debe contener al menos una mayúscula, un número y un símbolo (@$!%*?&._-).';
       return;
     }
     // Aquí podrías pedir la contraseña actual si lo deseas

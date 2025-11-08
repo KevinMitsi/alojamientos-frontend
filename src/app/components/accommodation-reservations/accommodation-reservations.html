@@ -1,0 +1,212 @@
+<div class="accommodation-reservations-container">
+  <!-- Header -->
+  <div class="header-section">
+    <div class="header-content">
+      <button class="btn-back" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div class="header-text">
+        <h1>Reservas de {{ accommodation?.title || 'Alojamiento' }}</h1>
+        <p class="subtitle">Gestiona las solicitudes de reserva de este alojamiento</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estadísticas rápidas -->
+  <div class="stats-card">
+    <div class="stat-item">
+      <i class="bi bi-calendar-check"></i>
+      <div class="stat-content">
+        <span class="stat-value">{{ totalElements }}</span>
+        <span class="stat-label">Total Reservas</span>
+      </div>
+    </div>
+    <div class="stat-item">
+      <i class="bi bi-hourglass-split"></i>
+      <div class="stat-content">
+        <span class="stat-value">{{ getCountByStatus('PENDING') }}</span>
+        <span class="stat-label">Pendientes</span>
+      </div>
+    </div>
+    <div class="stat-item">
+      <i class="bi bi-check-circle"></i>
+      <div class="stat-content">
+        <span class="stat-value">{{ getCountByStatus('CONFIRMED') }}</span>
+        <span class="stat-label">Confirmadas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-section">
+    <button 
+      class="filter-btn" 
+      [class.active]="filterStatus === 'ALL'"
+      (click)="setFilter('ALL')">
+      Todas
+    </button>
+    <button 
+      class="filter-btn" 
+      [class.active]="filterStatus === 'PENDING'"
+      (click)="setFilter('PENDING')">
+      Pendientes
+    </button>
+    <button 
+      class="filter-btn" 
+      [class.active]="filterStatus === 'CONFIRMED'"
+      (click)="setFilter('CONFIRMED')">
+      Confirmadas
+    </button>
+    <button 
+      class="filter-btn" 
+      [class.active]="filterStatus === 'CANCELLED'"
+      (click)="setFilter('CANCELLED')">
+      Canceladas
+    </button>
+    <button 
+      class="filter-btn" 
+      [class.active]="filterStatus === 'COMPLETED'"
+      (click)="setFilter('COMPLETED')">
+      Completadas
+    </button>
+  </div>
+
+  <!-- Lista de reservas -->
+  <div class="reservations-section">
+    @if (isLoading) {
+      <div class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+    }
+    @if (!isLoading && filteredReservations.length === 0) {
+      <div class="empty-state">
+        <i class="bi bi-calendar-x"></i>
+        <h3>No hay reservas{{ filterStatus !== 'ALL' ? ' con este filtro' : '' }}</h3>
+        <p>{{ filterStatus !== 'ALL' ? 'Intenta con otro filtro' : 'Aún no hay reservas para este alojamiento' }}</p>
+      </div>
+    }
+    @if (!isLoading && filteredReservations.length > 0) {
+      <div class="reservations-list">
+        @for (reservation of filteredReservations; track reservation.id) {
+          <div class="reservation-card">
+            <div class="card-header-res">
+              <div class="reservation-info">
+                <h3 class="reservation-id">Reserva #{{ reservation.id }}</h3>
+                <span class="status-badge" [ngClass]="getStatusBadgeClass(reservation.status)">
+                  {{ getStatusText(reservation.status) }}
+                </span>
+              </div>
+              <div class="reservation-price">
+                <span class="price-label">Total</span>
+                <span class="price-value">${{ reservation.totalPrice }}</span>
+              </div>
+            </div>
+
+            <div class="card-content-res">
+              <div class="info-grid">
+                <div class="info-item">
+                  <i class="bi bi-calendar-event"></i>
+                  <div class="info-text">
+                    <span class="info-label">Check-in</span>
+                    <span class="info-value">{{ formatDate(reservation.startDate) }}</span>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <i class="bi bi-calendar-event"></i>
+                  <div class="info-text">
+                    <span class="info-label">Check-out</span>
+                    <span class="info-value">{{ formatDate(reservation.endDate) }}</span>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <i class="bi bi-moon-stars"></i>
+                  <div class="info-text">
+                    <span class="info-label">Noches</span>
+                    <span class="info-value">{{ reservation.nights }}</span>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <i class="bi bi-people"></i>
+                  <div class="info-text">
+                    <span class="info-label">Huéspedes</span>
+                    <span class="info-value">{{ reservation.guests || 'N/A' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="additional-info">
+                <div class="info-row">
+                  <i class="bi bi-clock"></i>
+                  <span>Creada el {{ formatDate(reservation.createdAt) }}</span>
+                </div>
+                @if (reservation.canceladoAt) {
+                  <div class="info-row cancelled">
+                    <i class="bi bi-x-circle"></i>
+                    <span>Cancelada el {{ formatDate(reservation.canceladoAt) }}</span>
+                  </div>
+                }
+                @if (reservation.motivoCancelacion) {
+                  <div class="info-row cancelled">
+                    <i class="bi bi-info-circle"></i>
+                    <span>Motivo: {{ reservation.motivoCancelacion }}</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Acciones según el estado -->
+              @if (reservation.status === 'PENDING') {
+                <div class="card-actions-res">
+                  <button class="btn btn-confirm" (click)="updateReservationStatus(reservation.id, 'CONFIRMED')">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Confirmar
+                  </button>
+                  <button class="btn btn-cancel" (click)="updateReservationStatus(reservation.id, 'CANCELLED')">
+                    <i class="bi bi-x-circle me-1"></i>
+                    Rechazar
+                  </button>
+                </div>
+              }
+              @if (reservation.status === 'CONFIRMED') {
+                <div class="card-actions-res">
+                  <button class="btn btn-complete" (click)="updateReservationStatus(reservation.id, 'COMPLETED')">
+                    <i class="bi bi-check-all me-1"></i>
+                    Marcar como completada
+                  </button>
+                  <button class="btn btn-cancel" (click)="updateReservationStatus(reservation.id, 'CANCELLED')">
+                    <i class="bi bi-x-circle me-1"></i>
+                    Cancelar
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Paginación -->
+      @if (totalPages > 1) {
+        <div class="pagination-container">
+          <button 
+            class="btn btn-pagination" 
+            [disabled]="currentPage === 0"
+            (click)="previousPage()">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          
+          <div class="page-info">
+            <span>Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+          </div>
+          
+          <button 
+            class="btn btn-pagination" 
+            [disabled]="currentPage === totalPages - 1"
+            (click)="nextPage()">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>

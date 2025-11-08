@@ -7,6 +7,7 @@ import {
   ReservationStatus,
   ReservationSearchCriteria,
 } from '../models/reservation.model';
+import { PageResponse } from '../models/accommodation.model';
 
 @Injectable({
   providedIn: 'root',
@@ -64,9 +65,13 @@ export class ReservationService {
     });
   }
 
-getByAccommodation(accommodationId: number): Observable<ReservationDTO[]> {
-  return this.http.get<ReservationDTO[]>(
-    `${this.baseUrl}/accommodation/${accommodationId}`
+getByAccommodation(accommodationId: number, page: number = 0, size: number = 10): Observable<PageResponse<ReservationDTO>> {
+  const params = new HttpParams()
+    .set('page', page.toString())
+    .set('size', size.toString());
+  return this.http.get<PageResponse<ReservationDTO>>(
+    `${this.baseUrl}/accommodation/${accommodationId}`,
+    { params }
   );
 }
 

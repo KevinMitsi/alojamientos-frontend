@@ -34,7 +34,7 @@
 }
 
 .btn-reservations {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: white;
   padding: 0.875rem 1.75rem;
   border: none;
@@ -43,12 +43,13 @@
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
 }
 
 .btn-reservations:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4);
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
 }
 
 /* Stats Card */
@@ -328,10 +329,12 @@
   display: flex;
   gap: 0.75rem;
   margin-top: auto;
+  flex-wrap: wrap;
 }
 
 .card-actions .btn {
   flex: 1;
+  min-width: 120px;
   padding: 0.625rem 1rem;
   border: none;
   border-radius: 8px;
@@ -351,6 +354,16 @@
 
 .btn-view:hover {
   background: #5568d3;
+  transform: translateY(-2px);
+}
+
+.btn-reservations-card {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-reservations-card:hover {
+  background: #d97706;
   transform: translateY(-2px);
 }
 

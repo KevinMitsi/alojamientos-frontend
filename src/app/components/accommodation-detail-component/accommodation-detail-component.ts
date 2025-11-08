@@ -1,7 +1,7 @@
-import { Component, OnInit, inject, signal, computed,AfterViewInit } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, AfterViewInit } from '@angular/core';
 import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AccommodationService } from '../../services/accommodation.service';
 import { AccommodationDTO } from '../../models/accommodation.model';
 import { CommentListComponent } from '../comment/comment';
@@ -24,6 +24,7 @@ export class AccommodationDetailComponent implements OnInit,AfterViewInit {
   private accommodationService = inject(AccommodationService);
   private mapService = inject(MapService);
   private reservationService = inject(ReservationService);
+  private router = inject(Router);
   private mapInitialized = signal(false);
   private calendarInstance: flatpickr.Instance | null | undefined;
 private checkInCalendar: flatpickr.Instance | any;
@@ -261,6 +262,8 @@ onReserve(): void {
         }).then(() => {
           // Recargar las reservas para actualizar el calendario
           this.loadReservations(acc.id);
+          // Redirigir a la página de reservas
+          this.router.navigate(['/reservation']);
         });
       },
       error: (err) => {
