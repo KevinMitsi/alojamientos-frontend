@@ -60,7 +60,22 @@
 					</button>
 				</div>
 				@if (passwordError) {
-					<div class="alert alert-danger">{{ passwordError }}</div>
+					<div class="alert alert-danger">
+						{{ passwordError }}
+						@if (passwordError === 'Las contraseñas no coinciden.') {
+							<ul style="text-align:left; margin:0;">
+								<li>Las contraseñas ingresadas deben ser iguales.</li>
+							</ul>
+						}
+						@if (passwordError === 'La contraseña debe tener entre 8 y 20 caracteres.' || passwordError === 'La contraseña debe contener al menos una mayúscula, un número y un símbolo (@$!%*?&._-).') {
+							<ul style="text-align:left; margin:0;">
+								<li>Debe tener entre 8 y 20 caracteres</li>
+								<li>Debe contener al menos una mayúscula</li>
+								<li>Debe contener al menos un número</li>
+								<li>Debe contener al menos un símbolo (@$!%*?&._-)</li>
+							</ul>
+						}
+					</div>
 				}
 				@if (passwordSuccess) {
 					<div class="alert alert-success">{{ passwordSuccess }}</div>

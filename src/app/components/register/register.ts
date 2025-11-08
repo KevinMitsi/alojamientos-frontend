@@ -36,7 +36,12 @@ export class Register {
         phone: ['', [Validators.maxLength(10), Validators.pattern(/^\d*$/)]],
         email: ['', [Validators.required, Validators.email, Validators.maxLength(50)]],
         dateBirth: ['', [Validators.required]],
-        password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(20)]],
+          password: ['', [
+            Validators.required,
+            Validators.minLength(8),
+            Validators.maxLength(20),
+            Validators.pattern('^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&._-])[A-Za-z\\d@$!%*?&._-]+$')
+          ]],
         confirmPassword: ['', [Validators.required]],
       },
       { validators: this.passwordsMatchValidator }

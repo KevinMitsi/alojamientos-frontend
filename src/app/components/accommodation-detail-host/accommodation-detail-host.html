@@ -1,0 +1,67 @@
+<div class="metrics-container">
+	<div class="header-section">
+		<button class="btn btn-back" (click)="goBack()">
+			<i class="bi bi-arrow-left"></i> Volver
+		</button>
+		<h1>Métricas del alojamiento</h1>
+		<p class="subtitle">Visualiza el rendimiento y estadísticas de tu alojamiento</p>
+	</div>
+
+			<div class="metrics-card">
+				<div class="date-filters">
+					<label>
+						Fecha inicio:
+						<input type="date" [(ngModel)]="startDate" />
+					</label>
+					<label>
+						Fecha fin:
+						<input type="date" [(ngModel)]="endDate" />
+					</label>
+					<button class="btn btn-generate" (click)="onGenerateMetrics()">
+						<i class="bi bi-bar-chart"></i> Generar métricas
+					</button>
+				</div>
+
+				@if (isLoading) {
+					<div class="loading-spinner">
+						<div class="spinner-border text-primary" role="status">
+							<span class="visually-hidden">Cargando...</span>
+						</div>
+					</div>
+				}
+
+				@if (!isLoading && metrics) {
+					<div class="stat-list">
+						<div class="stat-item">
+							<i class="bi bi-calendar-check"></i>
+							<div class="stat-content">
+								<span class="stat-value">{{ metrics.totalReservations }}</span>
+								<span class="stat-label">Reservas totales</span>
+							</div>
+						</div>
+						<div class="stat-item">
+							<i class="bi bi-star-fill"></i>
+							<div class="stat-content">
+								<span class="stat-value">{{ metrics.averageRating > 0 ? metrics.averageRating.toFixed(1) : 'Sin valoraciones' }}</span>
+								<span class="stat-label">Valoración promedio</span>
+							</div>
+						</div>
+						<div class="stat-item">
+							<i class="bi bi-currency-dollar"></i>
+							<div class="stat-content">
+								<span class="stat-value">${{ metrics.totalRevenue }}</span>
+								<span class="stat-label">Ingresos totales</span>
+							</div>
+						</div>
+					</div>
+				}
+
+				@if (!isLoading && !metrics) {
+					<div class="empty-state">
+						<i class="bi bi-bar-chart"></i>
+						<h3>No hay métricas disponibles</h3>
+						<p>Este alojamiento aún no tiene datos suficientes para mostrar métricas.</p>
+					</div>
+				}
+			</div>
+</div>

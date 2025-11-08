@@ -86,8 +86,11 @@
     @if (password?.invalid && (password?.touched || password?.dirty)) {
       <div class="invalid-feedback d-block">
         @if (password?.errors?.['required']) { <span>La contraseña es obligatoria.</span> }
-        @if (password?.errors?.['minlength']) { <span>Mínimo 8 caracteres.</span> }
-        @if (password?.errors?.['maxlength']) { <span>Máximo 20 caracteres.</span> }
+        @if (password?.errors?.['minlength']) { <span>La contraseña debe tener al menos 8 caracteres.</span> }
+        @if (password?.errors?.['maxlength']) { <span>La contraseña debe tener máximo 20 caracteres.</span> }
+        @if (password?.errors?.['pattern']) {
+         <span>La contraseña debe contener al menos una mayúscula, un número y un símbolo (@$!%*?&._-).</span>
+        }
       </div>
     }
   </div>

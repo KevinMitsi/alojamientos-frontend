@@ -158,7 +158,11 @@ export class MyAccommodations implements OnInit, OnDestroy {
   }
 
   viewAccommodationDetail(id: number): void {
-    this.router.navigate(['/accommodation', id]);
+    this.router.navigate(['/accommodation-host', id]);
+  }
+
+  viewReservations(id: number): void {
+    this.router.navigate(['/alojamiento-reservas', id]);
   }
 
   editAccommodation(id: number): void {
