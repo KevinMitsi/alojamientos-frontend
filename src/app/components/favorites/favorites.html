@@ -1,0 +1,88 @@
+<div class="favorites-container">
+  <!-- Header con saludo -->
+  <div class="header-section">
+    <div class="greeting">
+      <h1>¡Hola, {{ currentUser?.name || 'Usuario' }}!</h1>
+      <p class="subtitle">Aquí están tus alojamientos favoritos</p>
+    </div>
+  </div>
+
+  <!-- Estadísticas rápidas -->
+  <div class="stats-card">
+    <div class="stat-item">
+      <i class="bi bi-heart-fill"></i>
+      <div class="stat-content">
+        <span class="stat-value">{{ favorites.length }}</span>
+        <span class="stat-label">Favoritos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de favoritos -->
+  <div class="favorites-section">
+    <div class="section-header">
+      <h2 class="section-title">Mis Favoritos</h2>
+    </div>
+    
+    @if (isLoading) {
+      <div class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+    }
+    
+    @if (!isLoading && favorites.length === 0) {
+      <div class="empty-state">
+        <i class="bi bi-heart-slash"></i>
+        <h3>No tienes favoritos aún</h3>
+        <p>Explora alojamientos y guarda tus favoritos para verlos aquí</p>
+        <button class="btn btn-explore" (click)="exploreAccommodations()">
+          <i class="bi bi-search me-2"></i>
+          Explorar alojamientos
+        </button>
+      </div>
+    }
+    
+    @if (!isLoading && favorites.length > 0) {
+      <div class="favorites-list">
+        @for (favorite of favorites; track favorite.id) {
+          <div class="favorite-card">
+            <div class="card-image">
+              <img [src]="getPrimaryImage(favorite)" [alt]="favorite.accommodation.title">
+              <button class="favorite-btn active" (click)="removeFavorite(favorite)" title="Quitar de favoritos">
+                <i class="bi bi-heart-fill"></i>
+              </button>
+            </div>
+            
+            <div class="card-content">
+              <div class="card-header">
+                <h3 class="card-title">{{ favorite.accommodation.title }}</h3>
+                <span class="price">${{ favorite.accommodation.pricePerNight }}<small>/noche</small></span>
+              </div>
+              
+              <div class="card-details">
+                <div class="detail-item">
+                  <i class="bi bi-star-fill"></i>
+                  <span>{{ favorite.accommodation.avgRating > 0 ? favorite.accommodation.avgRating.toFixed(1) : 'Sin valoraciones' }}</span>
+                </div>
+              </div>
+
+              <div class="card-actions">
+                <button class="btn btn-view" (click)="viewAccommodationDetail(favorite.accommodation.id)">
+                  <i class="bi bi-eye me-1"></i>
+                  Ver detalle
+                </button>
+                <button class="btn btn-delete" (click)="removeFavorite(favorite)">
+                  <i class="bi bi-heart-slash me-1"></i>
+                  Quitar de favoritos
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+

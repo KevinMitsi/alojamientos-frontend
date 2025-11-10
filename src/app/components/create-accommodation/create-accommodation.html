@@ -62,6 +62,7 @@
             id="city"
             name="city"
             [(ngModel)]="accommodationForm.city"
+            (change)="onCityChange($event)"
             required
             class="form-control"
           >
@@ -87,40 +88,38 @@
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group half-width">
-          <label for="lat">Latitud *</label>
-          <input
-            type="number"
-            id="lat"
-            name="lat"
-            [(ngModel)]="accommodationForm.coordinates.lat"
-            placeholder="4.6097100"
-            step="any"
-            required
-            class="form-control"
-          />
-        </div>
-
-        <div class="form-group half-width">
-          <label for="lng">Longitud *</label>
-          <input
-            type="number"
-            id="lng"
-            name="lng"
-            [(ngModel)]="accommodationForm.coordinates.lng"
-            placeholder="-74.0817500"
-            step="any"
-            required
-            class="form-control"
-          />
-        </div>
-      </div>
-
-      <div class="coordinates-help">
+      <!-- Instrucciones del mapa -->
+      <div class="map-instructions">
         <i class="fas fa-info-circle"></i>
-        <span>Puedes obtener las coordenadas desde <a href="https://www.google.com/maps" target="_blank">Google Maps</a></span>
+        <span>Haz clic en el mapa para seleccionar la ubicación exacta de tu alojamiento</span>
       </div>
+
+      <!-- Mapa interactivo -->
+      <div class="map-container">
+        <div id="map-create" class="map-box"></div>
+        @if (!selectedCoordinates()) {
+        <div class="map-overlay">
+          <i class="fas fa-map-marker-alt"></i>
+          <p>Haz clic en el mapa</p>
+        </div>
+      }
+      </div>
+
+      <!-- Coordenadas seleccionadas (solo lectura) -->
+      @if (selectedCoordinates()) {
+        <div class="coordinates-success">
+          <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="coordinates-info">
+            <h5>Ubicación seleccionada</h5>
+            <div class="coords-display">
+              <span><strong>Latitud:</strong> {{ selectedCoordinates()?.lat?.toFixed(6) }}</span>
+              <span><strong>Longitud:</strong> {{ selectedCoordinates()?.lng?.toFixed(6) }}</span>
+            </div>
+          </div>
+        </div>
+      }
     </div>
 
     <!-- Detalles del Alojamiento -->

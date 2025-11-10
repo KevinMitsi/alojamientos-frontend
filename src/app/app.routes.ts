@@ -10,7 +10,9 @@ import { MyAccommodations } from './components/my-accommodations/my-accommodatio
 import { CreateAccommodation } from './components/create-accommodation/create-accommodation';
 import { EditAccommodation } from './components/edit-accommodation/edit-accommodation';
 import { AccommodationReservations } from './components/accommodation-reservations/accommodation-reservations';
+import { Favorites } from './components/favorites/favorites';
 import { authGuard } from './guards/auth.guard';
+import { privateGuard } from './guards/private.guard';
 import { hostGuard } from './guards/host.guard';
 
 import { AccommodationDetailHost } from './components/accommodation-detail-host/accommodation-detail-host';
@@ -45,6 +47,14 @@ export const routes: Routes = [
    {path: 'reservation', component: Reservations},
 
    {path: 'configuracion', component: ConfigAccountComponent, runGuardsAndResolvers: 'always'},
+
+   // Ruta para favoritos (solo para usuarios autenticados)
+   {
+     path: 'favoritos',
+     component: Favorites,
+     canActivate: [privateGuard],
+     runGuardsAndResolvers: 'always'
+   },
 
    // Ruta para mis alojamientos (solo para hosts)
    {
