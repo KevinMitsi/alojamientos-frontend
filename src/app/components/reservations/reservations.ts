@@ -7,11 +7,14 @@ import { AccommodationService } from '../../services/accommodation.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import Swal from 'sweetalert2';
+import { CommentService } from '../../services/comment.service';
+import { FormsModule } from '@angular/forms';
+
 
 @Component({
   selector: 'app-reservations',
   standalone: true,
-  imports: [CommonModule, DatePipe, NgClass, RouterModule],
+  imports: [CommonModule, DatePipe, NgClass, RouterModule,FormsModule],
   templateUrl: './reservations.html',
   styleUrl: './reservations.css'
 })
@@ -20,12 +23,17 @@ export class Reservations implements OnInit {
   reservations: ReservationDTO[] = [];
   loading = true;
   errorMessage = '';
+  selectedReservation: ReservationDTO | null = null;
+  rating: number =5;
+  commentText: string='';
 
   constructor(
     private reservationService: ReservationService,
     private accommodationService: AccommodationService,
+    private commentService: CommentService,
     private router: Router,
-    private cdr: ChangeDetectorRef   
+    private cdr: ChangeDetectorRef  
+   
   ) {}
 
   ngOnInit(): void {
@@ -220,4 +228,69 @@ export class Reservations implements OnInit {
       }
     });
   }
+
+canLeaveComment(r: ReservationDTO): boolean {
+  return r.status === 'COMPLETED' && !r.comment;
+}
+
+openCommentDialog(r: ReservationDTO): void {
+  this.selectedReservation = r;
+  this.rating = 5;
+  this.commentText = '';
+}
+
+closeCommentDialog(): void {
+  this.selectedReservation = null;
+}
+
+submitComment(): void {
+  if (!this.selectedReservation) return;
+
+  this.commentService.create(
+    this.selectedReservation.id,
+    this.selectedReservation.accommodationId,
+    {
+      rating: this.rating,
+      text: this.commentText
+    }
+  ).subscribe({
+    next: () => {
+      Swal.fire({
+        title: '¡Comentario enviado!',
+        text: 'Gracias por compartir tu experiencia.',
+        icon: 'success',
+        showConfirmButton: false,
+        timer: 1800,
+        background: '#fefefe',
+        color: '#333',
+        backdrop: `
+          rgba(0,0,0,0.4)
+          left top
+          no-repeat
+        `,
+        didOpen: () => {
+          const popup = Swal.getPopup();
+          if (popup) {
+            popup.classList.add('animate__animated', 'animate__fadeInDown');
+          }
+        }
+      });
+
+      this.closeCommentDialog();
+      this.loadReservations();
+    },
+    error: (err) => {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al comentar',
+        text: err.error?.message || 'No se pudo enviar el comentario',
+        confirmButtonColor: '#d33'
+      });
+    }
+  });
+}
+
+
+
+  
 }
