@@ -9,6 +9,8 @@ import Swal from 'sweetalert2';
 import { timeout, finalize, catchError } from 'rxjs';
 import { of } from 'rxjs';
 import { CommentService } from '../../services/comment.service'; 
+import { forkJoin} from 'rxjs';
+import { map } from 'rxjs/operators';
 
 
 @Component({
@@ -133,17 +135,8 @@ export class MyAccommodations implements OnInit, OnDestroy {
           this.totalPages = response.totalPages || 0;
           this.totalElements = response.totalElements || 0;
 
-  // 🔹 Obtener cantidad de comentarios sin responder
-          this.accommodations.forEach(a => {
-  a.unrepliedCommentsCount = 0; // Inicializa
-  this.commentService.getByAccommodation(a.id).subscribe({
-    next: res => {
-      a.unrepliedCommentsCount = res.content.filter(
-        c => !c.hostReply || !c.hostReply.text
-      ).length;
-    }
-  });
-});
+  // 🔹 Calcular comentarios sin responder para cada alojamiento
+        this.loadUnrepliedCommentsCount();
 
         
 
@@ -242,7 +235,53 @@ export class MyAccommodations implements OnInit, OnDestroy {
   }
 
    openComments(accommodationId: number): void {
-    this.router.navigate(['/host-comments', accommodationId]);
+    this.router.navigate(['/host-comments']);
   }
+
+  private loadUnrepliedCommentsCount(): void {
+  if (this.accommodations.length === 0) {
+    return;
+  }
+
+  // Crear observables para cada alojamiento
+  const commentRequests = this.accommodations.map(accommodation => 
+    this.commentService.getByAccommodation(accommodation.id, 0, 100).pipe(
+      map(response => ({
+        accommodationId: accommodation.id,
+        unrepliedCount: response.content.filter(comment => 
+          !comment.hostReply || !comment.hostReply.text || comment.hostReply.text.trim() === ''
+        ).length
+      })),
+      catchError(error => {
+        console.error(`Error al cargar comentarios para alojamiento ${accommodation.id}:`, error);
+        return of({
+          accommodationId: accommodation.id,
+          unrepliedCount: 0
+        });
+      })
+    )
+  );
+
+  // Ejecutar todas las peticiones en paralelo
+  forkJoin(commentRequests).subscribe({
+    next: (results) => {
+      // Actualizar cada alojamiento con su conteo
+      results.forEach(result => {
+        const accommodation = this.accommodations.find(a => a.id === result.accommodationId);
+        if (accommodation) {
+          accommodation.unrepliedCommentsCount = result.unrepliedCount;
+        }
+      });
+      
+      // Forzar detección de cambios
+      this.cdr.detectChanges();
+      console.log('✅ Comentarios sin responder calculados:', this.accommodations);
+    },
+    error: (error) => {
+      console.error('Error al calcular comentarios sin responder:', error);
+      this.cdr.detectChanges();
+    }
+  });
+}
 
 } 

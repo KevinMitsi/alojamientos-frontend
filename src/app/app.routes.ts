@@ -14,6 +14,7 @@ import { authGuard } from './guards/auth.guard';
 import { hostGuard } from './guards/host.guard';
 
 import { AccommodationDetailHost } from './components/accommodation-detail-host/accommodation-detail-host';
+import { HostCommentsComponent } from './host-comments-component/host-comments-component';
 export const routes: Routes = [
   // Ruta principal - muestra la página principal con las cards
   {
@@ -90,5 +91,13 @@ export const routes: Routes = [
   {
     path: '**',
     redirectTo: ''
-  }
+  },
+
+{
+  path: 'host-comments/:id',
+  component: HostCommentsComponent,
+  canActivate: [hostGuard],
+  runGuardsAndResolvers: 'always'
+}
+
 ];
