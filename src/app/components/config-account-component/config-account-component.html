@@ -42,14 +42,35 @@
 			</button>
 		</div>
 		@if (showChangePassword) {
-			<form class="change-password-form" (ngSubmit)="onChangePassword()">
+			<form class="change-password-form" [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
+				<div class="info-row">
+					<label><i class="fas fa-lock"></i> Contraseña actual:</label>
+					<input type="password" formControlName="currentPassword" />
+					<div *ngIf="passwordForm.get('currentPassword')?.touched && passwordForm.get('currentPassword')?.invalid" class="text-danger small">
+						<div *ngIf="passwordForm.get('currentPassword')?.errors?.['required']">Este campo es obligatorio.</div>
+					</div>
+				</div>
 				<div class="info-row">
 					<label><i class="fas fa-lock"></i> Nueva contraseña:</label>
-					<input type="password" [(ngModel)]="newPassword" name="newPassword" required />
+					<input type="password" formControlName="newPassword" />
+					<div *ngIf="passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.invalid" class="text-danger small">
+						<div *ngIf="passwordForm.get('newPassword')?.errors?.['required']">Este campo es obligatorio.</div>
+						<div *ngIf="passwordForm.get('newPassword')?.errors?.['minlength']">Debe tener al menos 8 caracteres.</div>
+						<div *ngIf="passwordForm.get('newPassword')?.errors?.['maxlength']">No puede tener más de 20 caracteres.</div>
+						<div *ngIf="passwordForm.get('newPassword')?.errors?.['pattern']">
+							Debe contener al menos una mayúscula, un número y un símbolo (@$!%*?&._-).
+						</div>
+					</div>
 				</div>
 				<div class="info-row">
 					<label><i class="fas fa-lock"></i> Confirmar contraseña:</label>
-					<input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" required />
+					<input type="password" formControlName="confirmPassword" />
+					<div *ngIf="passwordForm.get('confirmPassword')?.touched && passwordForm.get('confirmPassword')?.invalid" class="text-danger small">
+						<div *ngIf="passwordForm.get('confirmPassword')?.errors?.['required']">Este campo es obligatorio.</div>
+					</div>
+				</div>
+				<div *ngIf="passwordForm.touched && passwordForm.errors?.['passwordsMismatch']" class="text-danger small">
+					Las contraseñas ingresadas deben ser iguales.
 				</div>
 				<div class="button-section">
 					<button class="btn btn-success me-2" type="submit">
@@ -60,22 +81,7 @@
 					</button>
 				</div>
 				@if (passwordError) {
-					<div class="alert alert-danger">
-						{{ passwordError }}
-						@if (passwordError === 'Las contraseñas no coinciden.') {
-							<ul style="text-align:left; margin:0;">
-								<li>Las contraseñas ingresadas deben ser iguales.</li>
-							</ul>
-						}
-						@if (passwordError === 'La contraseña debe tener entre 8 y 20 caracteres.' || passwordError === 'La contraseña debe contener al menos una mayúscula, un número y un símbolo (@$!%*?&._-).') {
-							<ul style="text-align:left; margin:0;">
-								<li>Debe tener entre 8 y 20 caracteres</li>
-								<li>Debe contener al menos una mayúscula</li>
-								<li>Debe contener al menos un número</li>
-								<li>Debe contener al menos un símbolo (@$!%*?&._-)</li>
-							</ul>
-						}
-					</div>
+					<div class="alert alert-danger">{{ passwordError }}</div>
 				}
 				@if (passwordSuccess) {
 					<div class="alert alert-success">{{ passwordSuccess }}</div>

@@ -1,10 +1,12 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, inject } from '@angular/core';
+import { signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { AccommodationService } from '../../services/accommodation.service';
 import { CreateAccommodationDTO, CoordinatesDTO } from '../../models/accommodation.model';
+import { MapService } from '../../services/map-service';
 
 @Component({
   selector: 'app-create-accommodation',
@@ -13,9 +15,10 @@ import { CreateAccommodationDTO, CoordinatesDTO } from '../../models/accommodati
   templateUrl: './create-accommodation.html',
   styleUrl: './create-accommodation.css'
 })
-export class CreateAccommodation implements OnInit {
+export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
   private readonly accommodationService = inject(AccommodationService);
   private readonly router = inject(Router);
+  private readonly mapService = inject(MapService);
 
   // Lista de servicios disponibles
   availableServices: string[] = [];
@@ -36,23 +39,65 @@ export class CreateAccommodation implements OnInit {
   // Estados
   isLoading = false;
   isSubmitting = false;
+  mapInitialized = false;
+  selectedCoordinates = signal<CoordinatesDTO | null>(null);
 
-  // Lista de ciudades (hardcoded por ahora - podrías crear un servicio)
+  // Lista de ciudades con coordenadas
   cities = [
-    { id: 1, name: 'Bogotá' },
-    { id: 2, name: 'Medellín' },
-    { id: 3, name: 'Cali' },
-    { id: 4, name: 'Barranquilla' },
-    { id: 5, name: 'Cartagena' },
-    { id: 6, name: 'Bucaramanga' },
-    { id: 7, name: 'Pereira' },
-    { id: 8, name: 'Santa Marta' },
-    { id: 9, name: 'Manizales' },
-    { id: 10, name: 'Cúcuta' }
+    { id: 1, name: 'Bogotá', lat: 4.60971, lng: -74.08175 },
+    { id: 2, name: 'Medellín', lat: 6.25184, lng: -75.56359 },
+    { id: 3, name: 'Cali', lat: 3.43722, lng: -76.5225 },
+    { id: 4, name: 'Barranquilla', lat: 10.96854, lng: -74.78132 },
+    { id: 5, name: 'Cartagena', lat: 10.39972, lng: -75.51444 },
+    { id: 6, name: 'Bucaramanga', lat: 7.12539, lng: -73.1198 },
+    { id: 7, name: 'Pereira', lat: 4.81333, lng: -75.69611 },
+    { id: 8, name: 'Santa Marta', lat: 11.24079, lng: -74.19904 },
+    { id: 9, name: 'Manizales', lat: 5.07, lng: -75.52 },
+    { id: 10, name: 'Cúcuta', lat: 7.88939, lng: -72.49839 }
   ];
 
   ngOnInit(): void {
     this.loadAvailableServices();
+  }
+
+  ngAfterViewInit(): void {
+    // Inicializar el mapa después de que la vista esté lista
+    this.initializeMap();
+  }
+
+  ngOnDestroy(): void {
+    // Limpiar el mapa al destruir el componente
+    if (this.mapService.mapInstance) {
+      this.mapService.clearMarkers();
+    }
+  }
+
+  initializeMap(): void {
+    setTimeout(() => {
+      const defaultCoordinates: CoordinatesDTO = { lat: 4.60971, lng: -74.08175 };
+      this.mapService.create('map-create', defaultCoordinates, 12);
+
+      const mapInstance = this.mapService.mapInstance;
+      if (mapInstance) {
+        mapInstance.on('click', (e: any) => {
+          const { lng, lat } = e.lngLat;
+
+          this.selectedCoordinates.set({ lat, lng });
+          this.accommodationForm = {
+            ...this.accommodationForm,
+            coordinates: { lat, lng }
+          };
+
+          this.mapService.clearMarkers();
+          this.mapService.addMarker(
+            { lat, lng },
+            'Ubicación seleccionada',
+            `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`
+          );
+        });
+        this.mapInitialized = true;
+      }
+    }, 100);
   }
 
   loadAvailableServices(): void {
@@ -85,6 +130,24 @@ export class CreateAccommodation implements OnInit {
 
   isServiceSelected(service: string): boolean {
     return this.selectedServices.includes(service);
+  }
+
+  onCityChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const cityId = Number(select.value);
+    
+    if (cityId && cityId > 0) {
+      const selectedCity = this.cities.find(c => c.id === cityId);
+      
+      if (selectedCity && this.mapService.mapInstance) {
+        // Centrar el mapa en la ciudad seleccionada
+        this.mapService.mapInstance.flyTo({
+          center: [selectedCity.lng, selectedCity.lat],
+          zoom: 13,
+          duration: 1500
+        });
+      }
+    }
   }
 
   onSubmit(): void {
@@ -193,8 +256,8 @@ export class CreateAccommodation implements OnInit {
     if (!this.accommodationForm.coordinates.lat || !this.accommodationForm.coordinates.lng) {
       Swal.fire({
         icon: 'warning',
-        title: 'Coordenadas requeridas',
-        text: 'Por favor ingresa las coordenadas del alojamiento'
+        title: 'Ubicación requerida',
+        text: 'Por favor selecciona la ubicación en el mapa haciendo clic sobre él'
       });
       return false;
     }

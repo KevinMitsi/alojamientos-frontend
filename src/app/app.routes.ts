@@ -3,6 +3,8 @@ import { MainPage } from './components/mainpage/mainpage';
 import { AccommodationDetailComponent } from './components/accommodation-detail-component/accommodation-detail-component';
 import { Login } from './components/login/login';
 import { Register } from './components/register/register';  
+import { PasswordRecovery } from './components/password-recovery/password-recovery';
+import { ChangePassword } from './components/change-password/change-password';
 import { Profile } from './components/profile/profile';
 import { Reservations } from './components/reservations/reservations';
 import { ConfigAccountComponent } from './components/config-account-component/config-account-component';
@@ -10,7 +12,9 @@ import { MyAccommodations } from './components/my-accommodations/my-accommodatio
 import { CreateAccommodation } from './components/create-accommodation/create-accommodation';
 import { EditAccommodation } from './components/edit-accommodation/edit-accommodation';
 import { AccommodationReservations } from './components/accommodation-reservations/accommodation-reservations';
+import { Favorites } from './components/favorites/favorites';
 import { authGuard } from './guards/auth.guard';
+import { privateGuard } from './guards/private.guard';
 import { hostGuard } from './guards/host.guard';
 
 import { AccommodationDetailHost } from './components/accommodation-detail-host/accommodation-detail-host';
@@ -33,6 +37,7 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
+
   //Ruta para Register (protegida para usuarios ya logueados)
   { 
     path: 'register', 
@@ -40,11 +45,31 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
+  // Ruta para recuperación de contraseña
+  {
+    path: 'password-recovery',
+    component: PasswordRecovery
+  },
+
+  // Ruta para cambiar contraseña
+  {
+    path: 'change-password',
+    component: ChangePassword
+  },
+
   { path: 'profile', component: Profile, runGuardsAndResolvers: 'always' },
 
    {path: 'reservation', component: Reservations},
 
    {path: 'configuracion', component: ConfigAccountComponent, runGuardsAndResolvers: 'always'},
+
+   // Ruta para favoritos (solo para usuarios autenticados)
+   {
+     path: 'favoritos',
+     component: Favorites,
+     canActivate: [privateGuard],
+     runGuardsAndResolvers: 'always'
+   },
 
    // Ruta para mis alojamientos (solo para hosts)
    {

@@ -26,6 +26,10 @@ export class NavBar {
     this.router.navigate(['/login']);
   }
 
+  goToFavoritos() {
+    this.router.navigate(['/favoritos']);
+  }
+
   logout() {
     this.tokenService.removeToken();
     this.isHostValue = false;
