@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommentService } from '../services/comment.service';
 import { CommonModule } from '@angular/common';
@@ -20,13 +20,17 @@ export class HostCommentsComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly commentService = inject(CommentService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   ngOnInit() {
     this.accommodationId = Number(this.route.snapshot.paramMap.get('id'));
+    console.log('🏠 ID del alojamiento:', this.accommodationId);
     this.loadComments();
   }
 
   loadComments() {
+    console.log('🔄 Cargando comentarios para alojamiento:', this.accommodationId);
+    
     Swal.fire({
       title: 'Cargando comentarios...',
       didOpen: () => Swal.showLoading(),
@@ -36,15 +40,45 @@ export class HostCommentsComponent implements OnInit {
 
     this.commentService.getByAccommodation(this.accommodationId, 0, 100).subscribe({
       next: (res) => {
-        this.comments = res.content;
+        console.log('📥 Respuesta completa de la API:', res);
+        console.log('📝 Comentarios en content:', res.content);
+        console.log('🔢 Cantidad de comentarios:', res.content?.length || 0);
+        
+        this.comments = res.content || [];
+        
+        // 🔹 Forzar detección de cambios después de actualizar el array
+        this.cdr.detectChanges();
+        
         Swal.close();
+        
+        if (this.comments.length === 0) {
+          console.log('⚠️ No se encontraron comentarios para este alojamiento');
+          Swal.fire({
+            icon: 'info',
+            title: 'Sin comentarios',
+            text: 'Aún no hay comentarios para este alojamiento',
+            confirmButtonColor: '#3085d6'
+          });
+        } else {
+          console.log('✅ Comentarios cargados exitosamente');
+        }
       },
       error: (error) => {
-        console.error('Error al cargar comentarios:', error);
+        console.error('❌ Error al cargar comentarios:', error);
+        console.error('📋 Detalles del error:', {
+          status: error.status,
+          statusText: error.statusText,
+          message: error.message,
+          error: error.error
+        });
+        
+        this.comments = [];
+        this.cdr.detectChanges();
+        
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'No se pudieron cargar los comentarios',
+          text: error?.error?.message || 'No se pudieron cargar los comentarios',
           confirmButtonColor: '#d33'
         });
       }
@@ -64,6 +98,8 @@ export class HostCommentsComponent implements OnInit {
       return;
     }
 
+    console.log('📤 Enviando respuesta:', { commentId, replyText });
+
     Swal.fire({
       title: 'Enviando respuesta...',
       didOpen: () => Swal.showLoading(),
@@ -73,7 +109,9 @@ export class HostCommentsComponent implements OnInit {
 
     this.commentService.reply(commentId, replyText.trim()).subscribe({
       next: () => {
+        console.log('✅ Respuesta enviada exitosamente');
         delete this.replyTexts[commentId];
+        
         Swal.fire({
           icon: 'success',
           title: '¡Respuesta enviada!',
@@ -85,7 +123,8 @@ export class HostCommentsComponent implements OnInit {
         });
       },
       error: (error) => {
-        console.error('Error al enviar respuesta:', error);
+        console.error('❌ Error al enviar respuesta:', error);
+        
         Swal.fire({
           icon: 'error',
           title: 'Error',
