@@ -38,6 +38,8 @@ export interface AccommodationDTO {
   updatedAt: string;
   countReservations: number;
   avgRating: number;
+
+  unrepliedCommentsCount?: number;
 }
 
 // DTO para crear alojamiento

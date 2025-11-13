@@ -8,6 +8,8 @@ import { User } from '../../models/user.model';
 import Swal from 'sweetalert2';
 import { timeout, finalize, catchError } from 'rxjs';
 import { of } from 'rxjs';
+import { CommentService } from '../../services/comment.service'; 
+
 
 @Component({
   selector: 'app-my-accommodations',
@@ -22,6 +24,8 @@ export class MyAccommodations implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly commentService = inject(CommentService);
+
 
   currentUser: User | null = null;
   accommodations: AccommodationDTO[] = [];
@@ -128,6 +132,23 @@ export class MyAccommodations implements OnInit, OnDestroy {
           this.accommodations = response.content || [];
           this.totalPages = response.totalPages || 0;
           this.totalElements = response.totalElements || 0;
+
+  // 🔹 Obtener cantidad de comentarios sin responder
+          this.accommodations.forEach(a => {
+  a.unrepliedCommentsCount = 0; // Inicializa
+  this.commentService.getByAccommodation(a.id).subscribe({
+    next: res => {
+      a.unrepliedCommentsCount = res.content.filter(
+        c => !c.hostReply || !c.hostReply.text
+      ).length;
+    }
+  });
+});
+
+        
+
+
+          
         },
         error: (error) => {
           // Este error NO debería ejecutarse porque catchError lo maneja
@@ -219,4 +240,9 @@ export class MyAccommodations implements OnInit, OnDestroy {
       'https://placehold.co/400x300/e0e0e0/757575?text=Sin+Imagen'
     );
   }
+
+   openComments(accommodationId: number): void {
+    this.router.navigate(['/host-comments', accommodationId]);
+  }
+
 } 

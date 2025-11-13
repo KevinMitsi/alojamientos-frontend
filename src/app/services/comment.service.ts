@@ -56,12 +56,14 @@ create(reservationId: number, accommodationId: number, dto: CreateCommentDTO): O
    * @param commentId - ID del comentario a responder
    * @param dto - Texto de la respuesta
    */
-  reply(commentId: number, dto: ReplyCommentDTO): Observable<CommentDTO> {
-    return this.http.post<CommentDTO>(
-      `${this.baseUrl}/${commentId}/reply`,
-      dto
-    );
-  }
+  reply(commentId: number, replyText: string): Observable<string> {
+  return this.http.put<string>(
+    `${this.baseUrl}/${commentId}/reply`,
+    {},
+    { params: { replyText } }
+  );
+}
+
 
   /**
    * Eliminar un comentario (solo el autor o admin)

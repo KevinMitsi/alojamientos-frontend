@@ -1,0 +1,21 @@
+<p>host-comments-component works!</p>
+<div class="comments-container">
+  <h2>Comentarios del alojamiento</h2>
+
+  <div *ngFor="let c of comments" class="comment-card">
+    <p><strong>{{ c.userName || 'Usuario' }}</strong>: {{ c.text }}</p>
+    <small class="date">{{ c.createdAt | date: 'short' }}</small>
+
+    <div *ngIf="!c.hostReply?.text; else replied">
+      <textarea [(ngModel)]="replyText" placeholder="Escribe tu respuesta..."></textarea>
+      <button class="btn btn-reply" (click)="sendReply(c.id)">Responder</button>
+    </div>
+
+    <ng-template #replied>
+      <div class="reply-section">
+        <i class="bi bi-reply"></i>
+        <p>Tu respuesta: {{ c.hostReply.text }}</p>
+      </div>
+    </ng-template>
+  </div>
+</div>
