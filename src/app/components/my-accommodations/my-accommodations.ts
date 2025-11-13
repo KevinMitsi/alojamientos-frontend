@@ -234,9 +234,9 @@ export class MyAccommodations implements OnInit, OnDestroy {
     );
   }
 
-   openComments(accommodationId: number): void {
-    this.router.navigate(['/host-comments']);
-  }
+openComments(accommodationId: number): void {
+  this.router.navigate(['/host-comments', accommodationId]);
+}
 
   private loadUnrepliedCommentsCount(): void {
   if (this.accommodations.length === 0) {
