@@ -87,17 +87,19 @@ export const routes: Routes = [
      runGuardsAndResolvers: 'always'
    },
 
-  // Ruta wildcard - redirige cualquier ruta no encontrada a la página principal
-  {
-    path: '**',
-    redirectTo: ''
-  },
-
-{
+   {
   path: 'host-comments/:id',
   component: HostCommentsComponent,
   canActivate: [hostGuard],
   runGuardsAndResolvers: 'always'
-}
+},
+
+  // Ruta wildcard - redirige cualquier ruta no encontrada a la página principal
+  {
+    path: '**',
+    redirectTo: ''
+  }
+
+
 
 ];
