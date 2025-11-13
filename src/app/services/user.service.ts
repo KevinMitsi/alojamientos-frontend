@@ -36,7 +36,7 @@ export class UserService {
   }
   // 🔹 Cambiar contraseña (PasswordChangeDTO)
   changePassword(passwordChange: { currentPassword: string; newPassword: string }): Observable<string> {
-    return this.http.put<string>(`${this.baseUrl}/password`, passwordChange);
+    return this.http.put(`${this.baseUrl}/password`, passwordChange, { responseType: 'text' });
   }
 
   // 🔹 Subir documentos
