@@ -471,3 +471,31 @@
     justify-content: center;
   }
 }
+
+.btn-comments {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+}
+
+.btn-comments:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(59, 130, 246, 0.4);
+}
+
+.badge {
+  background-color: #ef4444;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+  margin-left: 6px;
+}
