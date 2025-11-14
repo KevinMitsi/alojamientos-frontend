@@ -17,8 +17,8 @@ import {
 })
 export class AccommodationService {
   private readonly http = inject(HttpClient);
-  // Usa ruta relativa '/api' si tienes proxy configurado, o 'http://localhost:8080/api' directo
-  private readonly baseUrl = 'http://localhost:8080/api/accommodations';
+  // Usa ruta relativa '/api' si tienes proxy configurado, o 'https://pavanzada-gestionalojaimientos-production.up.railway.app/api' directo
+  private readonly baseUrl = 'https://pavanzada-gestionalojaimientos-production.up.railway.app/api/accommodations';
   
   /**
    * Crear un nuevo alojamiento (requiere autenticación y rol HOST)

@@ -16,7 +16,7 @@ export interface Favorite {
 
 @Injectable({ providedIn: 'root' })
 export class FavoriteService {
-  private baseUrl = 'http://localhost:8080/api/favorites';
+  private baseUrl = 'https://pavanzada-gestionalojaimientos-production.up.railway.app/api/favorites';
 
   constructor(private http: HttpClient) {}
 

@@ -9,8 +9,8 @@ import { EditUser, User } from '../models/user.model';
 })
 export class UserService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8080/api/users';
-  private readonly authUrl = 'http://localhost:8080/api/auth';
+  private readonly baseUrl = 'https://pavanzada-gestionalojaimientos-production.up.railway.app/api/users';
+  private readonly authUrl = 'https://pavanzada-gestionalojaimientos-production.up.railway.app/api/auth';
 
   // 🔹 Obtener usuario autenticado (al cargar perfil)
   getCurrentUser(): Observable<User> {

@@ -24,7 +24,7 @@ export interface AuthResponse {
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8080/api/auth'; // Cambia la URL según tu backend
+  private readonly baseUrl = 'https://pavanzada-gestionalojaimientos-production.up.railway.app/api/auth'; // Cambia la URL según tu backend
 
   login(email: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.baseUrl}/login`, { email, password });

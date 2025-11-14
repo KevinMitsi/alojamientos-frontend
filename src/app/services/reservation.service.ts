@@ -14,7 +14,7 @@ import { PageResponse } from '../models/accommodation.model';
 })
 export class ReservationService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8080/api/reservations';
+  private readonly baseUrl = 'https://pavanzada-gestionalojaimientos-production.up.railway.app/api/reservations';
 
 
 

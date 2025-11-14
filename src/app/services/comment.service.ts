@@ -13,7 +13,7 @@ import {
 })
 export class CommentService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8080/api/comments';
+  private readonly baseUrl = 'https://pavanzada-gestionalojaimientos-production.up.railway.app/api/comments';
 
   /**
    * Obtener todos los comentarios de un alojamiento (público)

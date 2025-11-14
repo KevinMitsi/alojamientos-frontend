@@ -8,7 +8,7 @@ import { PasswordResetRequestDTO, PasswordResetDto } from '../models/password-re
 })
 export class PasswordResetService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8080/api/password-reset';
+  private readonly baseUrl = 'https://pavanzada-gestionalojaimientos-production.up.railway.app/api/password-reset';
 
   requestReset(dto: PasswordResetRequestDTO): Observable<string> {
     return this.http.post(`${this.baseUrl}/request`, dto, { responseType: 'text' });
