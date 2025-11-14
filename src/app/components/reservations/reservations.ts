@@ -10,22 +10,20 @@ import Swal from 'sweetalert2';
 import { CommentService } from '../../services/comment.service';
 import { FormsModule } from '@angular/forms';
 
-
 @Component({
   selector: 'app-reservations',
   standalone: true,
-  imports: [CommonModule, DatePipe, NgClass, RouterModule,FormsModule],
+  imports: [CommonModule, DatePipe, NgClass, RouterModule, FormsModule],
   templateUrl: './reservations.html',
   styleUrl: './reservations.css'
 })
 export class Reservations implements OnInit {
-
   reservations: ReservationDTO[] = [];
   loading = true;
   errorMessage = '';
   selectedReservation: ReservationDTO | null = null;
-  rating: number =5;
-  commentText: string='';
+  rating: number = 5;
+  commentText: string = '';
 
   constructor(
     private reservationService: ReservationService,
@@ -33,7 +31,6 @@ export class Reservations implements OnInit {
     private commentService: CommentService,
     private router: Router,
     private cdr: ChangeDetectorRef  
-   
   ) {}
 
   ngOnInit(): void {
@@ -96,7 +93,6 @@ export class Reservations implements OnInit {
             this.reservations = [...this.reservations];
             this.loading = false;
             Swal.close();
-          
             this.cdr.detectChanges();
           },
           error: (err) => {
@@ -229,68 +225,118 @@ export class Reservations implements OnInit {
     });
   }
 
-canLeaveComment(r: ReservationDTO): boolean {
-  return r.status === 'COMPLETED' && !r.comment;
-}
+  canLeaveComment(r: ReservationDTO): boolean {
+    return r.status === 'COMPLETED' && !r.comment;
+  }
 
-openCommentDialog(r: ReservationDTO): void {
-  this.selectedReservation = r;
-  this.rating = 5;
-  this.commentText = '';
-}
+  openCommentDialog(r: ReservationDTO): void {
+    this.selectedReservation = r;
+    this.rating = 5;
+    this.commentText = '';
+  }
 
-closeCommentDialog(): void {
-  this.selectedReservation = null;
-}
+  closeCommentDialog(): void {
+    this.selectedReservation = null;
+    this.rating = 5;
+    this.commentText = '';
+  }
 
-submitComment(): void {
-  if (!this.selectedReservation) return;
+  submitComment(): void {
+    if (!this.selectedReservation) return;
 
-  this.commentService.create(
-    this.selectedReservation.id,
-    this.selectedReservation.accommodationId,
-    {
-      rating: this.rating,
-      text: this.commentText
-    }
-  ).subscribe({
-    next: () => {
+    // Validar que haya texto en el comentario
+    if (!this.commentText || this.commentText.trim() === '') {
       Swal.fire({
-        title: '¡Comentario enviado!',
-        text: 'Gracias por compartir tu experiencia.',
-        icon: 'success',
-        showConfirmButton: false,
-        timer: 1800,
-        background: '#fefefe',
-        color: '#333',
-        backdrop: `
-          rgba(0,0,0,0.4)
-          left top
-          no-repeat
-        `,
-        didOpen: () => {
-          const popup = Swal.getPopup();
-          if (popup) {
-            popup.classList.add('animate__animated', 'animate__fadeInDown');
+        icon: 'warning',
+        title: 'Comentario vacío',
+        text: 'Por favor escribe tu experiencia antes de enviar',
+        confirmButtonColor: '#3085d6',
+        confirmButtonText: 'Entendido'
+      });
+      return;
+    }
+
+    // Mostrar loading mientras se envía el comentario
+    Swal.fire({
+      title: 'Enviando comentario...',
+      html: 'Por favor espera mientras procesamos tu reseña',
+      didOpen: () => Swal.showLoading(),
+      allowOutsideClick: false,
+      showConfirmButton: false
+    });
+
+    this.commentService.create(
+      this.selectedReservation.id,
+      this.selectedReservation.accommodationId,
+      {
+        rating: this.rating,
+        text: this.commentText.trim()
+      }
+    ).subscribe({
+      next: () => {
+        // Cerrar el modal de comentario primero
+        this.closeCommentDialog();
+        
+        // Mostrar notificación de éxito mejorada
+        Swal.fire({
+          icon: 'success',
+          title: '¡Comentario publicado exitosamente!',
+          html: `
+            <div style="text-align: center; padding: 1rem 0;">
+              <div style="font-size: 3rem; margin-bottom: 1rem;">⭐</div>
+              <p style="font-size: 1.1rem; color: #2c3e50; margin-bottom: 0.5rem;">
+                Gracias por compartir tu experiencia
+              </p>
+              <p style="font-size: 0.95rem; color: #7f8c8d;">
+                Tu reseña de <strong>${this.rating} ${this.rating === 1 ? 'estrella' : 'estrellas'}</strong> 
+                ayuda a otros viajeros a tomar mejores decisiones
+              </p>
+            </div>
+          `,
+          showConfirmButton: true,
+          confirmButtonText: '¡Genial!',
+          confirmButtonColor: '#28a745',
+          allowOutsideClick: false,
+          customClass: {
+            popup: 'animated-popup',
+            confirmButton: 'pulse-button'
+          },
+          timer: 4000,
+          timerProgressBar: true,
+          didOpen: () => {
+            // Animación personalizada
+            const popup = Swal.getPopup();
+            if (popup) {
+              popup.style.animation = 'slideInDown 0.5s ease-out';
+            }
           }
-        }
-      });
-
-      this.closeCommentDialog();
-      this.loadReservations();
-    },
-    error: (err) => {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error al comentar',
-        text: err.error?.message || 'No se pudo enviar el comentario',
-        confirmButtonColor: '#d33'
-      });
-    }
-  });
-}
-
-
-
-  
+        }).then(() => {
+          // Recargar reservas para actualizar el estado
+          this.loadReservations();
+        });
+      },
+      error: (err) => {
+        console.error('Error al enviar comentario:', err);
+        
+        const errorMessage = err?.error?.message || 
+                            err?.error?.details?.detalle || 
+                            'No se pudo enviar el comentario. Por favor intenta nuevamente.';
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al enviar comentario',
+          text: errorMessage,
+          confirmButtonColor: '#d33',
+          confirmButtonText: 'Reintentar',
+          showCancelButton: true,
+          cancelButtonText: 'Cancelar'
+        }).then((result) => {
+          // Si el usuario quiere reintentar, mantener el modal abierto
+          if (!result.isConfirmed) {
+            this.closeCommentDialog();
+          }
+        });
+      }
+    });
+  }
 }
