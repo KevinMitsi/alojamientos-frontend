@@ -13,3 +13,6 @@ export class App  {
   protected readonly title = signal('alojamientos-fronted');
 
 }
+
+
+

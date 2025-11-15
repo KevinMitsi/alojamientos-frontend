@@ -1,5 +1,8 @@
+// src/app/components/reservations/reservations.ts
+
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ReservationService } from '../../services/reservation.service';
+import { MercadoPagoService } from '../../services/mercado-pago.service';
 import { ReservationDTO } from '../../models/reservation.model';
 import { CommonModule, DatePipe, NgClass } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
@@ -27,6 +30,7 @@ export class Reservations implements OnInit {
 
   constructor(
     private reservationService: ReservationService,
+    private mercadoPagoService: MercadoPagoService,
     private accommodationService: AccommodationService,
     private commentService: CommentService,
     private router: Router,
@@ -35,305 +39,287 @@ export class Reservations implements OnInit {
 
   ngOnInit(): void {
     this.loadReservations();
+    this.checkPaymentStatus();
   }
 
   loadReservations(): void {
-    this.loading = true;
-    this.errorMessage = '';
+  this.loading = true;
+  this.errorMessage = '';
 
+  this.reservationService.findByUser(0, 10).subscribe({
+    next: (res: any) => {
+      this.reservations = res.content || res || [];
+
+      if (!this.reservations || this.reservations.length === 0) {
+        this.loading = false;
+        this.cdr.detectChanges(); 
+        return;
+      }
+
+      const uniqueIds = Array.from(new Set(this.reservations.map(r => r.accommodationId)));
+      const calls = uniqueIds.map(id =>
+        this.accommodationService.findById(id).pipe(
+          catchError(err => {
+            console.error(`Error cargando alojamiento ${id}:`, err);
+            return of(null);
+          })
+        )
+      );
+
+      forkJoin(calls).subscribe({
+        next: (accommodations: any[]) => {
+          const map = new Map<number, any>();
+          accommodations.forEach((acc, idx) => {
+            if (acc) map.set(uniqueIds[idx], acc);
+          });
+
+          this.reservations = this.reservations.map(r => {
+            const acc = map.get(r.accommodationId);
+            if (acc) {
+              r.accommodationName = acc.title ?? 'Alojamiento';
+              if (acc.images?.length) {
+                const primary = acc.images.find((img: any) => img.isPrimary);
+                r.imageUrl = primary ? primary.url : acc.images[0].url;
+              } else if (acc.primaryImageUrl) {
+                r.imageUrl = acc.primaryImageUrl;
+              }
+            }
+            return { ...r };
+          });
+
+          this.reservations = [...this.reservations];
+          this.loading = false;
+          this.errorMessage = '';
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.loading = false;
+          this.errorMessage = 'Error al cargar los alojamientos.';
+          this.cdr.detectChanges(); 
+        },
+      });
+    },
+    error: (err) => {
+      console.error('❌ Error cargando reservas:', err);
+
+      // 👇 NO mostrar el error de inmediato
+      this.errorMessage = '';
+      this.loading = false;
+
+      // 🔁 Reintento automático si fue un error temporal (token, sincronización, etc.)
+      setTimeout(() => {
+        if (!this.reservations.length) {
+          console.log('Reintentando cargar reservas...');
+          this.loadReservations();
+        }
+      }, 1500);
+
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+
+  /**
+   * Iniciar proceso de pago con MercadoPago
+   */
+  payReservation(reservationId: number): void {
+    // Mostrar loading
     Swal.fire({
-      title: 'Cargando reservas...',
-      didOpen: () => Swal.showLoading(),
+      title: 'Procesando...',
+      text: 'Creando preferencia de pago en MercadoPago',
       allowOutsideClick: false,
-      showConfirmButton: false
+      didOpen: () => {
+        Swal.showLoading();
+      }
     });
 
-    this.reservationService.findByUser(0, 10).subscribe({
-      next: (res: any) => {
-        this.reservations = res.content || res || [];
-
-        if (!this.reservations || this.reservations.length === 0) {
-          this.loading = false;
-          Swal.close();
-          this.cdr.detectChanges(); 
-          return;
+    // Crear preferencia de pago en MercadoPago
+    this.mercadoPagoService.createPreference(reservationId).subscribe({
+      next: (paymentUrl: string) => {
+        console.log('✅ URL de pago recibida:', paymentUrl);
+        
+        // Cerrar el loading
+        Swal.close();
+        
+        // Guardar el ID de la reserva en localStorage para verificar después
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.setItem('pending_payment_reservation', reservationId.toString());
         }
 
-        const uniqueIds = Array.from(new Set(this.reservations.map(r => r.accommodationId)));
-        const calls = uniqueIds.map(id =>
-          this.accommodationService.findById(id).pipe(
-            catchError(err => {
-              console.error(`Error cargando alojamiento ${id}:`, err);
-              return of(null);
-            })
-          )
-        );
-
-        forkJoin(calls).subscribe({
-          next: (accommodations: any[]) => {
-            const map = new Map<number, any>();
-            accommodations.forEach((acc, idx) => {
-              if (acc) map.set(uniqueIds[idx], acc);
-            });
-
-            this.reservations = this.reservations.map(r => {
-              const acc = map.get(r.accommodationId);
-              if (acc) {
-                r.accommodationName = acc.title ?? 'Alojamiento';
-                if (acc.images?.length) {
-                  const primary = acc.images.find((img: any) => img.isPrimary);
-                  r.imageUrl = primary ? primary.url : acc.images[0].url;
-                } else if (acc.primaryImageUrl) {
-                  r.imageUrl = acc.primaryImageUrl;
-                }
-              }
-              return { ...r };
-            });
-
-            this.reservations = [...this.reservations];
-            this.loading = false;
-            Swal.close();
-            this.cdr.detectChanges();
-          },
-          error: (err) => {
-            this.loading = false;
-            this.errorMessage = 'Error al cargar los alojamientos.';
-            
-            Swal.fire({
-              icon: 'error',
-              title: 'Error al cargar alojamientos',
-              text: err?.error?.message || err?.error?.details?.detalle || 'No se pudieron cargar los detalles de los alojamientos.',
-              confirmButtonText: 'Entendido',
-              confirmButtonColor: '#d33'
-            });
-            
-            this.cdr.detectChanges(); 
-          },
+        // Mostrar confirmación antes de redirigir
+        Swal.fire({
+          icon: 'success',
+          title: '¡Listo para pagar!',
+          html: `
+            <p>Serás redirigido a MercadoPago para completar tu pago de forma segura.</p>
+            <small class="text-muted">Puedes usar las tarjetas de prueba proporcionadas</small>
+          `,
+          showConfirmButton: true,
+          confirmButtonText: 'Ir a pagar',
+          confirmButtonColor: '#0069d9',
+          showCancelButton: true,
+          cancelButtonText: 'Cancelar'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Redirigir a MercadoPago
+            window.location.href = paymentUrl;
+          }
         });
       },
       error: (err) => {
-        this.loading = false;
-        this.errorMessage = 'Error al cargar las reservas.';
-        console.error('Error cargando reservas:', err);
+        console.error('❌ Error al iniciar el pago:', err);
         
-        const errorMessage = err?.error?.message || err?.error?.details?.detalle || 'No se pudieron cargar las reservas. Intenta nuevamente.';
+        let errorMessage = 'No se pudo iniciar el proceso de pago.';
+        
+        // Intentar extraer mensaje de error específico
+        if (err.error) {
+          if (typeof err.error === 'string') {
+            errorMessage = err.error;
+          } else if (err.error.error) {
+            errorMessage = err.error.error;
+          } else if (err.error.message) {
+            errorMessage = err.error.message;
+          }
+        }
         
         Swal.fire({
           icon: 'error',
-          title: 'Error al cargar reservas',
-          text: errorMessage,
-          confirmButtonText: 'Reintentar',
-          confirmButtonColor: '#d33'
+          title: 'Error al procesar el pago',
+          html: `
+            <p><strong>${errorMessage}</strong></p>
+            <hr>
+            <small class="text-muted">
+              <strong>Posibles causas:</strong><br>
+              • Token de MercadoPago inválido o expirado<br>
+              • Conexión con MercadoPago interrumpida<br>
+              • Datos de la reserva incompletos
+            </small>
+          `,
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#dc3545',
+          footer: '<a href="https://www.mercadopago.com.co/developers" target="_blank">Ver documentación de MercadoPago</a>'
         });
-        
-        this.cdr.detectChanges(); 
+
+        this.errorMessage = errorMessage;
+        this.cdr.detectChanges();
       }
     });
   }
 
-  payReservation(reservationId: number): void {
-    Swal.fire({
-      title: 'Procesando pago...',
-      text: 'Redirigiendo a la pasarela de pago',
-      didOpen: () => Swal.showLoading(),
-      allowOutsideClick: false,
-      showConfirmButton: false
-    });
+  /**
+   * Verificar si hay un pago pendiente de confirmación
+   * (cuando el usuario regresa de MercadoPago)
+   */
+checkPaymentStatus(): void {
+  if (typeof window === 'undefined') return;
 
-    this.reservationService.payReservation(reservationId).subscribe({
-      next: (res) => {
-        window.location.href = res.paymentUrl;
-      },
-      error: (err) => {
-        console.error('Error al iniciar el pago', err);
-        this.errorMessage = 'No se pudo iniciar el pago. Intenta nuevamente.';
-        
-        const errorMessage = err?.error?.message || err?.error?.details?.detalle || 'No se pudo iniciar el proceso de pago. Intenta nuevamente.';
-        
+  const urlParams = new URLSearchParams(window.location.search);
+  const status = urlParams.get('status');
+  const reservationId = urlParams.get('reservationId') || window.localStorage.getItem('pending_payment_reservation');
+
+  if (!status || !reservationId) return;
+
+  const resId = parseInt(reservationId, 10);
+
+  if (status === 'approved' || status === 'COMPLETED') {
+  this.mercadoPagoService.confirmPayment(resId, 'COMPLETED').subscribe({
+    next: () => {
+      window.localStorage.removeItem('pending_payment_reservation');
+      Swal.fire({
+        icon: 'success',
+        title: '¡Pago exitoso!',
+        text: 'Tu reserva ha sido confirmada',
+        confirmButtonText: 'Ver mis reservas'
+      }).then(() => {
+        // ✅ Refresca directamente las reservas
+        this.loadReservations();
+        // Limpia los parámetros de la URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      });
+    },
+    error: (err) => {
+      console.error('Error al confirmar pago:', err);
+      Swal.fire({
+        icon: 'warning',
+        title: 'Pago procesado',
+        text: 'El pago fue procesado pero no se actualizó la reserva. Contacta soporte.',
+      });
+      return;
+    }
+  });
+}
+
+       else if (status === 'pending') {
+        window.localStorage.removeItem('pending_payment_reservation');
+        Swal.fire({
+          icon: 'info',
+          title: 'Pago pendiente',
+          text: 'Tu pago está siendo procesado. Te notificaremos cuando se complete.',
+          confirmButtonText: 'Entendido'
+        });
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (status === 'failure' || status === 'rejected') {
+        window.localStorage.removeItem('pending_payment_reservation');
         Swal.fire({
           icon: 'error',
-          title: 'Error al procesar pago',
-          text: errorMessage,
-          confirmButtonText: 'Reintentar',
-          confirmButtonColor: '#d33'
+          title: 'Pago rechazado',
+          text: 'El pago no pudo ser procesado. Por favor, intenta nuevamente.',
+          confirmButtonText: 'Entendido'
         });
-      },
-    });
-  }
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  
 
   cancelReservation(reservationId: number): void {
     Swal.fire({
       title: '¿Cancelar reserva?',
-      text: '¿Estás seguro de que deseas cancelar esta reserva?',
-      icon: 'warning',
+      text: '¿Por qué deseas cancelar esta reserva?',
       input: 'textarea',
-      inputLabel: 'Motivo de cancelación',
       inputPlaceholder: 'Escribe el motivo de la cancelación...',
-      inputAttributes: {
-        'aria-label': 'Motivo de cancelación'
-      },
       showCancelButton: true,
-      confirmButtonText: 'Sí, cancelar',
-      cancelButtonText: 'No, mantener',
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Cancelar reserva',
+      cancelButtonText: 'Volver',
+      confirmButtonColor: '#dc3545',
       inputValidator: (value) => {
         if (!value) {
-          return 'Debes proporcionar un motivo de cancelación';
+          return 'Debes escribir un motivo';
         }
         return null;
       }
     }).then((result) => {
       if (result.isConfirmed && result.value) {
+        const motivo = result.value;
+
         Swal.fire({
-          title: 'Cancelando reserva...',
-          didOpen: () => Swal.showLoading(),
+          title: 'Cancelando...',
           allowOutsideClick: false,
-          showConfirmButton: false
+          didOpen: () => {
+            Swal.showLoading();
+          }
         });
 
-        this.reservationService.cancel(reservationId, result.value).subscribe({
+        this.reservationService.cancel(reservationId, motivo).subscribe({
           next: () => {
             Swal.fire({
               icon: 'success',
-              title: '¡Reserva cancelada!',
-              text: 'La reserva ha sido cancelada exitosamente.',
-              timer: 2000,
-              showConfirmButton: false
+              title: 'Reserva cancelada',
+              text: 'Tu reserva ha sido cancelada exitosamente',
+              confirmButtonText: 'Entendido'
             }).then(() => {
               this.loadReservations();
             });
           },
           error: (err) => {
             console.error('Error al cancelar reserva', err);
-            this.errorMessage = 'No se pudo cancelar la reserva.';
-            
-            const errorMessage = err?.error?.message || err?.error?.details?.detalle || 'No se pudo cancelar la reserva. Intenta nuevamente.';
-            
             Swal.fire({
               icon: 'error',
               title: 'Error al cancelar',
-              text: errorMessage,
-              confirmButtonText: 'Entendido',
-              confirmButtonColor: '#d33'
+              text: err.error?.message || 'No se pudo cancelar la reserva. Intenta nuevamente.',
+              confirmButtonText: 'Entendido'
             });
-            
             this.cdr.detectChanges();
-          },
-        });
-      }
-    });
-  }
-
-  canLeaveComment(r: ReservationDTO): boolean {
-    return r.status === 'COMPLETED' && !r.comment;
-  }
-
-  openCommentDialog(r: ReservationDTO): void {
-    this.selectedReservation = r;
-    this.rating = 5;
-    this.commentText = '';
-  }
-
-  closeCommentDialog(): void {
-    this.selectedReservation = null;
-    this.rating = 5;
-    this.commentText = '';
-  }
-
-  submitComment(): void {
-    if (!this.selectedReservation) return;
-
-    // Validar que haya texto en el comentario
-    if (!this.commentText || this.commentText.trim() === '') {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Comentario vacío',
-        text: 'Por favor escribe tu experiencia antes de enviar',
-        confirmButtonColor: '#3085d6',
-        confirmButtonText: 'Entendido'
-      });
-      return;
-    }
-
-    // Mostrar loading mientras se envía el comentario
-    Swal.fire({
-      title: 'Enviando comentario...',
-      html: 'Por favor espera mientras procesamos tu reseña',
-      didOpen: () => Swal.showLoading(),
-      allowOutsideClick: false,
-      showConfirmButton: false
-    });
-
-    this.commentService.create(
-      this.selectedReservation.id,
-      this.selectedReservation.accommodationId,
-      {
-        rating: this.rating,
-        text: this.commentText.trim()
-      }
-    ).subscribe({
-      next: () => {
-        // Cerrar el modal de comentario primero
-        this.closeCommentDialog();
-        
-        // Mostrar notificación de éxito mejorada
-        Swal.fire({
-          icon: 'success',
-          title: '¡Comentario publicado exitosamente!',
-          html: `
-            <div style="text-align: center; padding: 1rem 0;">
-              <div style="font-size: 3rem; margin-bottom: 1rem;">⭐</div>
-              <p style="font-size: 1.1rem; color: #2c3e50; margin-bottom: 0.5rem;">
-                Gracias por compartir tu experiencia
-              </p>
-              <p style="font-size: 0.95rem; color: #7f8c8d;">
-                Tu reseña de <strong>${this.rating} ${this.rating === 1 ? 'estrella' : 'estrellas'}</strong> 
-                ayuda a otros viajeros a tomar mejores decisiones
-              </p>
-            </div>
-          `,
-          showConfirmButton: true,
-          confirmButtonText: '¡Genial!',
-          confirmButtonColor: '#28a745',
-          allowOutsideClick: false,
-          customClass: {
-            popup: 'animated-popup',
-            confirmButton: 'pulse-button'
-          },
-          timer: 4000,
-          timerProgressBar: true,
-          didOpen: () => {
-            // Animación personalizada
-            const popup = Swal.getPopup();
-            if (popup) {
-              popup.style.animation = 'slideInDown 0.5s ease-out';
-            }
-          }
-        }).then(() => {
-          // Recargar reservas para actualizar el estado
-          this.loadReservations();
-        });
-      },
-      error: (err) => {
-        console.error('Error al enviar comentario:', err);
-        
-        const errorMessage = err?.error?.message || 
-                            err?.error?.details?.detalle || 
-                            'No se pudo enviar el comentario. Por favor intenta nuevamente.';
-        
-        Swal.fire({
-          icon: 'error',
-          title: 'Error al enviar comentario',
-          text: errorMessage,
-          confirmButtonColor: '#d33',
-          confirmButtonText: 'Reintentar',
-          showCancelButton: true,
-          cancelButtonText: 'Cancelar'
-        }).then((result) => {
-          // Si el usuario quiere reintentar, mantener el modal abierto
-          if (!result.isConfirmed) {
-            this.closeCommentDialog();
           }
         });
       }
