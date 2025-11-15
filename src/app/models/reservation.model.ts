@@ -7,6 +7,7 @@ export interface CreateReservationDTO {
 }
 
 export interface ReservationDTO {
+comment: any;
   id: number;
   accommodationId: number;
   userId: number;

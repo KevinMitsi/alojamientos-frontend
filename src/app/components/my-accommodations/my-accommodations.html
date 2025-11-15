@@ -1,0 +1,153 @@
+<div class="my-accommodations-container">
+  <!-- Header con saludo y botón de reservas -->
+  <div class="header-section">
+    <div class="greeting">
+      <h1>¡Hola, {{ currentUser?.name || 'Host' }}!</h1>
+      <p class="subtitle">Gestiona tus alojamientos desde aquí</p>
+    </div>
+  </div>
+
+  <!-- Estadísticas rápidas -->
+  <div class="stats-card">
+    <div class="stat-item">
+      <i class="bi bi-building"></i>
+      <div class="stat-content">
+        <span class="stat-value">{{ totalElements }}</span>
+        <span class="stat-label">Alojamientos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de alojamientos -->
+  <div class="accommodations-section">
+    <div class="section-header">
+      <h2 class="section-title">Mis Alojamientos</h2>
+      @if (accommodations.length > 0) {
+        <button class="btn btn-create-accommodation" (click)="createAccommodation()">
+          <i class="bi bi-plus-circle me-2"></i>
+          Crear alojamiento
+        </button>
+      }
+    </div>
+    
+    @if (isLoading) {
+      <div class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+    }
+    @if (!isLoading && accommodations.length === 0) {
+      <div class="empty-state">
+        <i class="bi bi-house-slash"></i>
+        <h3>No tienes alojamientos registrados</h3>
+        <p>Comienza publicando tu primer alojamiento</p>
+        <button class="btn btn-create-first" (click)="createAccommodation()">
+          <i class="bi bi-plus-circle me-2"></i>
+          Crea tu primer alojamiento
+        </button>
+      </div>
+    }
+    @if (!isLoading && accommodations.length > 0) {
+      <div class="accommodations-list">
+        @for (accommodation of accommodations; track accommodation.id) {
+          <div class="accommodation-card">
+            <div class="card-image">
+              <img [src]="getPrimaryImage(accommodation)" [alt]="accommodation.title">
+              <span class="status-badge" [class.active]="accommodation.active" [class.inactive]="!accommodation.active">
+                {{ accommodation.active ? 'Activo' : 'Inactivo' }}
+              </span>
+            </div>
+            
+            <div class="card-content">
+              <div class="card-header">
+                <h3 class="card-title">{{ accommodation.title }}</h3>
+                <span class="price">${{ accommodation.pricePerNight }}<small>/noche</small></span>
+              </div>
+              
+              <div class="card-details">
+                <div class="detail-item">
+                  <i class="bi bi-geo-alt"></i>
+                  <span>{{ accommodation.city.name }}</span>
+                </div>
+                <div class="detail-item">
+                  <i class="bi bi-people"></i>
+                  <span>Hasta {{ accommodation.maxGuests }} huéspedes</span>
+                </div>
+                <div class="detail-item">
+                  <i class="bi bi-calendar-check"></i>
+                  <span>{{ accommodation.countReservations }} reservas</span>
+                </div>
+                <div class="detail-item">
+                  <i class="bi bi-star-fill"></i>
+                  <span>{{ accommodation.avgRating > 0 ? accommodation.avgRating.toFixed(1) : 'Sin valoraciones' }}</span>
+                </div>
+              </div>
+
+              <div class="services-tags">
+                @for (service of accommodation.services.slice(0, 3); track service) {
+                  <span class="service-tag">{{ service }}</span>
+                }
+                @if (accommodation.services.length > 3) {
+                  <span class="service-tag more">+{{ accommodation.services.length - 3 }}</span>
+                }
+              </div>
+
+              <div class="card-actions">
+                <button class="btn btn-view" (click)="viewAccommodationDetail(accommodation.id)">
+                  <i class="bi bi-eye me-1"></i>
+                  Ver métricas
+                </button>
+                <button class="btn btn-reservations-card" (click)="viewReservations(accommodation.id)">
+                  <i class="bi bi-calendar-check me-1"></i>
+                  Reservas
+                </button>
+                  <!-- 🆕 Nuevo botón de comentarios -->
+                  <button class="btn btn-comments" (click)="openComments(accommodation.id)">
+                   <i class="bi bi-chat-dots me-1"></i>
+                    Comentarios
+                    <span *ngIf="accommodation.unrepliedCommentsCount && accommodation.unrepliedCommentsCount > 0"
+                     class="badge bg-danger ms-1">
+                         {{ accommodation.unrepliedCommentsCount }}
+                                 </span>
+                        </button>
+
+                <button class="btn btn-edit" (click)="editAccommodation(accommodation.id)">
+                  <i class="bi bi-pencil me-1"></i>
+                  Editar
+                </button>
+                <button class="btn btn-delete" (click)="deleteAccommodation(accommodation.id)">
+                  <i class="bi bi-trash me-1"></i>
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Paginación -->
+      @if (totalPages > 1) {
+        <div class="pagination-container">
+          <button 
+            class="btn btn-pagination" 
+            [disabled]="currentPage === 0"
+            (click)="previousPage()">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          
+          <div class="page-info">
+            <span>Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+          </div>
+          
+          <button 
+            class="btn btn-pagination" 
+            [disabled]="currentPage === totalPages - 1"
+            (click)="nextPage()">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>

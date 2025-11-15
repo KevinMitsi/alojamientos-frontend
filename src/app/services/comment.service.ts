@@ -43,24 +43,30 @@ export class CommentService {
    * @param reservationId - ID de la reserva completada
    * @param dto - Datos del comentario (rating y texto)
    */
-  create(reservationId: number, dto: CreateCommentDTO): Observable<CommentDTO> {
-    return this.http.post<CommentDTO>(
-      `${this.baseUrl}/reservation/${reservationId}`,
-      dto
-    );
-  }
+create(reservationId: number, accommodationId: number, dto: CreateCommentDTO): Observable<CommentDTO> {
+  return this.http.post<CommentDTO>(
+    `${this.baseUrl}/${reservationId}/${accommodationId}`,
+    dto
+  );
+}
+
 
   /**
    * Responder a un comentario (solo anfitrión, requiere autenticación)
    * @param commentId - ID del comentario a responder
    * @param dto - Texto de la respuesta
    */
-  reply(commentId: number, dto: ReplyCommentDTO): Observable<CommentDTO> {
-    return this.http.post<CommentDTO>(
-      `${this.baseUrl}/${commentId}/reply`,
-      dto
-    );
-  }
+reply(commentId: number, replyText: string): Observable<string> {
+  return this.http.put(
+    `${this.baseUrl}/${commentId}/reply`,
+    {},
+    { 
+      params: { replyText },
+      responseType: 'text' // 
+    }
+  );
+}
+
 
   /**
    * Eliminar un comentario (solo el autor o admin)

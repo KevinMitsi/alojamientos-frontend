@@ -1,6 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { TokenService } from '../../services/token.service';
+import { AuthService } from '../../services/auth.service';
+import { UserRole } from '../../models/user.model';
 import { CommonModule } from '@angular/common';
 import Swal from 'sweetalert2';
 
@@ -13,6 +15,7 @@ import Swal from 'sweetalert2';
 })
 export class NavBar {
   private readonly tokenService = inject(TokenService);
+  private readonly authService = inject(AuthService);
   public readonly router = inject(Router);
 
   isAuthenticated(): boolean {
@@ -23,8 +26,14 @@ export class NavBar {
     this.router.navigate(['/login']);
   }
 
+  goToFavoritos() {
+    this.router.navigate(['/favoritos']);
+  }
+
   logout() {
     this.tokenService.removeToken();
+    this.isHostValue = false;
+    this.checkedHost = false;
     Swal.fire({
       icon: 'info',
       title: 'Sesión cerrada',
@@ -32,7 +41,25 @@ export class NavBar {
       timer: 1500,
       showConfirmButton: false
     }).then(() => {
-      this.router.navigate(['/**']);
+      this.router.navigate(['/']);
     });
+  }
+
+  public isHostValue: boolean = false;
+  private checkedHost: boolean = false;
+
+  isHost(): boolean {
+    if (!this.checkedHost && this.isAuthenticated()) {
+      this.checkedHost = true;
+      this.authService.getCurrentUser().subscribe({
+        next: (user) => {
+          this.isHostValue = user.roles?.includes(UserRole.HOST) || false;
+        },
+        error: () => {
+          this.isHostValue = false;
+        }
+      });
+    }
+    return this.isHostValue;
   }
 }

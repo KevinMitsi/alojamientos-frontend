@@ -1,7 +1,7 @@
-import { Component, OnInit, inject, signal, computed,AfterViewInit } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, AfterViewInit } from '@angular/core';
 import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AccommodationService } from '../../services/accommodation.service';
 import { AccommodationDTO } from '../../models/accommodation.model';
 import { CommentListComponent } from '../comment/comment';
@@ -24,6 +24,7 @@ export class AccommodationDetailComponent implements OnInit,AfterViewInit {
   private accommodationService = inject(AccommodationService);
   private mapService = inject(MapService);
   private reservationService = inject(ReservationService);
+  private router = inject(Router);
   private mapInitialized = signal(false);
   private calendarInstance: flatpickr.Instance | null | undefined;
 private checkInCalendar: flatpickr.Instance | any;
@@ -114,6 +115,16 @@ private checkOutCalendar: flatpickr.Instance | any;
       console.error('Error al cargar alojamiento:', err);
       this.error.set('No se pudo cargar el alojamiento.');
       this.loading.set(false);
+      
+      const errorMessage = err?.error?.message || err?.error?.details?.detalle || 'No se pudo cargar el alojamiento. Intenta nuevamente.';
+      
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al cargar alojamiento',
+        text: errorMessage,
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#d33'
+      });
     }
   });
  
@@ -207,7 +218,13 @@ onReserve(): void {
     if (!acc) return;
 
     if (!this.checkInDate() || !this.checkOutDate()) {
-      Swal.fire('Fechas incompletas', 'Selecciona llegada y salida.', 'warning');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Fechas incompletas',
+        text: 'Por favor selecciona las fechas de llegada y salida.',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#3085d6'
+      });
       return;
     }
 
@@ -220,25 +237,47 @@ onReserve(): void {
 
     Swal.fire({
       title: 'Procesando reserva...',
+      text: 'Estamos creando tu reserva',
       didOpen: () => Swal.showLoading(),
       allowOutsideClick: false,
+      showConfirmButton: false
     });
 
     this.reservationService.create(dto).subscribe({
       next: (res) => {
+        const nights = this.totalNights();
+        const total = this.totalPrice();
+        
         Swal.fire({
           icon: 'success',
-          title: '¡Reserva creada!',
-          text: `Tu reserva fue creada exitosamente. Estado: ${res.status}`,
+          title: '¡Reserva creada exitosamente!',
+          html: `
+            <p><strong>Estado:</strong> ${res.status}</p>
+            <p><strong>Noches:</strong> ${nights}</p>
+            <p><strong>Total:</strong> ${this.formatCurrency(total)}</p>
+            <p class="mt-2">Recibirás un correo con los detalles de tu reserva.</p>
+          `,
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#3085d6'
+        }).then(() => {
+          // Recargar las reservas para actualizar el calendario
+          this.loadReservations(acc.id);
+          // Redirigir a la página de reservas
+          this.router.navigate(['/reservation']);
         });
       },
       error: (err) => {
+        console.error(err);
+        
+        const errorMessage = err?.error?.message || err?.error?.details?.detalle || 'No se pudo completar la reserva. Intenta nuevamente.';
+        
         Swal.fire({
           icon: 'error',
           title: 'Error al crear reserva',
-          text: err.error?.message || 'No se pudo completar la reserva.',
+          text: errorMessage,
+          confirmButtonText: 'Reintentar',
+          confirmButtonColor: '#d33'
         });
-        console.error(err);
       },
     });
   }
@@ -265,8 +304,8 @@ onReserve(): void {
     return date.toLocaleDateString('es-ES', options);
   }
 
-  // Método para formatear moneda
-  private formatCurrency(amount: number): string {
+  // Método para formatear moneda (público para usar en onReserve)
+  formatCurrency(amount: number): string {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
@@ -284,8 +323,19 @@ onReserve(): void {
       // Espera un tick para que Angular pinte el HTML antes de inicializar Flatpickr
       setTimeout(() => this.initializeCalendar(), 200);
     },
-    error: () => {
+    error: (err) => {
       this.loading.set(false);
+      console.error('Error al cargar reservas del alojamiento:', err);
+      
+      const errorMessage = err?.error?.message || err?.error?.details?.detalle || 'No se pudieron cargar las reservas del alojamiento.';
+      
+      Swal.fire({
+        icon: 'warning',
+        title: 'Advertencia',
+        text: errorMessage + ' El calendario puede no mostrar todas las fechas ocupadas.',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#f39c12'
+      });
     },
   });
 }

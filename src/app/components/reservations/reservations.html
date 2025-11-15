@@ -29,6 +29,7 @@
 
   <!-- Lista de reservas -->
   <div class="reservation-card" *ngFor="let r of reservations">
+
     <!-- Imagen del alojamiento -->
     <div class="reservation-image">
       <img
@@ -60,6 +61,7 @@
         </span>
       </div>
 
+      <!-- ✅ ACCIONES ORIGINALES -->
       <div class="actions">
         <button 
           class="btn pay" 
@@ -86,12 +88,75 @@
           Ver detalles
         </button>
       </div>
+
+      <!-- ✅ BOTÓN PARA DEJAR COMENTARIO -->
+      <div class="actions" *ngIf="canLeaveComment(r)">
+        <button class="btn comment-btn" (click)="openCommentDialog(r)">
+          <i class="bi bi-chat-dots"></i> Dejar comentario
+        </button>
+      </div>
+
+      <!-- ✅ YA COMENTADO -->
+      <div class="comment-done" *ngIf="r.comment">
+        <i class="bi bi-check-circle-fill text-success"></i>
+        Ya dejaste un comentario
+      </div>
+
     </div>
 
     <!-- Precio -->
     <div class="reservation-price">
       <span>{{ r.totalPrice | currency: 'COP':'symbol':'1.0-0' }}</span>
       <small class="text-muted d-block">Precio total</small>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ MODAL DE COMENTARIO MEJORADO -->
+<div class="modal-backdrop" *ngIf="selectedReservation">
+  <div class="modal-box enhanced">
+    <h3 class="modal-title">
+      <i class="bi bi-chat-dots text-primary"></i>
+      Dejar comentario
+    </h3>
+
+    <div class="modal-body">
+      <p class="modal-subtitle">
+        <strong>{{ selectedReservation.accommodationName }}</strong><br />
+        Reserva #{{ selectedReservation.id }}
+      </p>
+
+      <!-- Calificación -->
+      <label class="form-label">Calificación:</label>
+      <div class="stars">
+        <i
+          *ngFor="let s of [1,2,3,4,5]"
+          class="bi"
+          [ngClass]="{
+            'bi-star-fill text-warning': s <= rating,
+            'bi-star text-secondary': s > rating
+          }"
+          (click)="rating = s"
+        ></i>
+      </div>
+
+      <!-- Texto del comentario -->
+      <label class="form-label mt-3">Tu experiencia</label>
+      <textarea
+        class="form-control comment-textarea"
+        rows="4"
+        [(ngModel)]="commentText"
+        placeholder="Cuéntanos cómo fue tu estancia..."
+      ></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-primary" (click)="submitComment()">
+        <i class="bi bi-send"></i> Enviar
+      </button>
+      <button class="btn btn-outline-secondary" (click)="closeCommentDialog()">
+        Cancelar
+      </button>
     </div>
   </div>
 </div>

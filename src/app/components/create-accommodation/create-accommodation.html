@@ -1,0 +1,211 @@
+<div class="create-accommodation-container">
+  <div class="header-section">
+    <h1><i class="fas fa-plus-circle"></i> Crear Nuevo Alojamiento</h1>
+    <p class="subtitle">Completa la información de tu alojamiento</p>
+  </div>
+
+  <form class="accommodation-form" (ngSubmit)="onSubmit()" #accommodationFormElement="ngForm">
+    
+    <!-- Información Básica -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <i class="fas fa-info-circle"></i>
+        Información Básica
+      </h2>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="title">Título del alojamiento *</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            [(ngModel)]="accommodationForm.title"
+            placeholder="Ej: Apartamento acogedor en el centro"
+            required
+            minlength="5"
+            maxlength="200"
+            class="form-control"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="description">Descripción *</label>
+          <textarea
+            id="description"
+            name="description"
+            [(ngModel)]="accommodationForm.description"
+            placeholder="Describe tu alojamiento, sus características, lo que lo hace especial..."
+            required
+            minlength="10"
+            maxlength="1000"
+            rows="5"
+            class="form-control"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ubicación -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <i class="fas fa-map-marker-alt"></i>
+        Ubicación
+      </h2>
+
+      <div class="form-row">
+        <div class="form-group half-width">
+          <label for="city">Ciudad *</label>
+          <select
+            id="city"
+            name="city"
+            [(ngModel)]="accommodationForm.city"
+            (change)="onCityChange($event)"
+            required
+            class="form-control"
+          >
+            <option [value]="0" disabled>Selecciona una ciudad</option>
+            <option *ngFor="let city of cities" [value]="city.id">
+              {{ city.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group half-width">
+          <label for="address">Dirección *</label>
+          <input
+            type="text"
+            id="address"
+            name="address"
+            [(ngModel)]="accommodationForm.address"
+            placeholder="Calle 123 #45-67"
+            required
+            maxlength="300"
+            class="form-control"
+          />
+        </div>
+      </div>
+
+      <!-- Instrucciones del mapa -->
+      <div class="map-instructions">
+        <i class="fas fa-info-circle"></i>
+        <span>Haz clic en el mapa para seleccionar la ubicación exacta de tu alojamiento</span>
+      </div>
+
+      <!-- Mapa interactivo -->
+      <div class="map-container">
+        <div id="map-create" class="map-box"></div>
+        @if (!selectedCoordinates()) {
+        <div class="map-overlay">
+          <i class="fas fa-map-marker-alt"></i>
+          <p>Haz clic en el mapa</p>
+        </div>
+      }
+      </div>
+
+      <!-- Coordenadas seleccionadas (solo lectura) -->
+      @if (selectedCoordinates()) {
+        <div class="coordinates-success">
+          <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="coordinates-info">
+            <h5>Ubicación seleccionada</h5>
+            <div class="coords-display">
+              <span><strong>Latitud:</strong> {{ selectedCoordinates()?.lat?.toFixed(6) }}</span>
+              <span><strong>Longitud:</strong> {{ selectedCoordinates()?.lng?.toFixed(6) }}</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Detalles del Alojamiento -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <i class="fas fa-home"></i>
+        Detalles del Alojamiento
+      </h2>
+
+      <div class="form-row">
+        <div class="form-group half-width">
+          <label for="pricePerNight">Precio por noche (COP) *</label>
+          <input
+            type="number"
+            id="pricePerNight"
+            name="pricePerNight"
+            [(ngModel)]="accommodationForm.pricePerNight"
+            placeholder="150000"
+            min="1"
+            required
+            class="form-control"
+          />
+        </div>
+
+        <div class="form-group half-width">
+          <label for="maxGuests">Máximo de huéspedes *</label>
+          <input
+            type="number"
+            id="maxGuests"
+            name="maxGuests"
+            [(ngModel)]="accommodationForm.maxGuests"
+            placeholder="2"
+            min="1"
+            required
+            class="form-control"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Servicios -->
+    <div class="form-section">
+      <h2 class="section-title">
+        <i class="fas fa-concierge-bell"></i>
+        Servicios Disponibles
+      </h2>
+
+      <div class="services-grid" *ngIf="!isLoading">
+        <div
+          *ngFor="let service of availableServices"
+          class="service-item"
+          [class.selected]="isServiceSelected(service)"
+          (click)="toggleService(service)"
+        >
+          <i class="fas fa-check-circle"></i>
+          <span>{{ service }}</span>
+        </div>
+      </div>
+
+      <div class="loading-services" *ngIf="isLoading">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Cargando servicios...</span>
+      </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="form-actions">
+      <button
+        type="button"
+        class="btn btn-cancel"
+        (click)="cancel()"
+        [disabled]="isSubmitting"
+      >
+        <i class="fas fa-times"></i>
+        Cancelar
+      </button>
+
+      <button
+        type="submit"
+        class="btn btn-submit"
+        [disabled]="isSubmitting || !accommodationFormElement.valid"
+      >
+        <i class="fas fa-check" *ngIf="!isSubmitting"></i>
+        <i class="fas fa-spinner fa-spin" *ngIf="isSubmitting"></i>
+        {{ isSubmitting ? 'Creando...' : 'Crear Alojamiento' }}
+      </button>
+    </div>
+  </form>
+</div>

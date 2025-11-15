@@ -48,17 +48,17 @@
         
        
         @if (isAuthenticated()) {
-          <li class="nav-item">
-          <a 
-            class="nav-link" 
-            [ngClass]="{ 'active': router.url.startsWith('/favoritos') }" 
-            (click)="router.navigate(['/favoritos'])"
-            style="cursor:pointer;"
-          >
-            <i class="bi bi-heart me-1"></i>
-            Favoritos
-          </a>
-        </li>
+            <li class="nav-item">
+              <button 
+                class="nav-link btn btn-link px-2"
+                [ngClass]="{ 'active': router.url.startsWith('/favoritos') }"
+                (click)="goToFavoritos()"
+                style="color: #febb02; font-weight: 600;"
+              >
+                <i class="bi bi-heart me-1"></i>
+                Favoritos
+              </button>
+            </li>
         
           <li class="nav-item dropdown">
             <a 
@@ -73,6 +73,9 @@
             <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" (click)="router.navigate(['/profile'])"> <i class="bi bi-person me-2"></i>Perfil</a></li>
               <li><a class="dropdown-item" (click)="router.navigate(['/reservation'])"><i class="bi bi-calendar-check me-2"></i>Mis Reservas</a></li>
+              @if (isHost()) {
+                <li><a class="dropdown-item" (click)="router.navigate(['/mis-alojamientos'])"><i class="bi bi-building me-2"></i>Mis Alojamientos</a></li>
+              }
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item" (click)="router.navigate(['/configuracion'])"><i class="bi bi-gear me-2"></i>Configuracion</a></li>
               <li><button class="dropdown-item" (click)="logout()"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesion</button></li>

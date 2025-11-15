@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { User, UserRole } from '../../models/user.model';
@@ -8,7 +10,7 @@ import { User, UserRole } from '../../models/user.model';
 @Component({
   selector: 'app-config-account-component',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './config-account-component.html',
   styleUrl: './config-account-component.css'
 })
@@ -20,8 +22,8 @@ export class ConfigAccountComponent {
   userDocuments: string[] = [];
 
   // Contraseña
-  newPassword: string = '';
-  confirmPassword: string = '';
+  passwordForm: FormGroup;
+  passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]+$/;
   passwordError: string = '';
   passwordSuccess: string = '';
 
@@ -31,14 +33,34 @@ export class ConfigAccountComponent {
   uploadSuccess: string = '';
 
 
-  constructor(private userService: UserService, private authService: AuthService) {
+  constructor(
+    private userService: UserService,
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef,
+    private fb: FormBuilder
+  ) {
+    this.passwordForm = this.fb.group({
+      currentPassword: ['', Validators.required],
+      newPassword: ['', [
+        Validators.required,
+        Validators.minLength(8),
+        Validators.maxLength(20),
+        Validators.pattern(this.passwordPattern)
+      ]],
+      confirmPassword: ['', Validators.required]
+    }, { validators: this.passwordsMatchValidator });
     this.loadUser();
+  }
+
+  passwordsMatchValidator(form: FormGroup) {
+    const newPassword = form.get('newPassword')?.value;
+    const confirmPassword = form.get('confirmPassword')?.value;
+    return newPassword === confirmPassword ? null : { passwordsMismatch: true };
   }
 
   loadUser() {
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
-        console.log('Usuario recibido:', user);
         this.user = user;
         if (user.roles && user.roles.length > 0) {
           if (user.roles.includes(UserRole.HOST)) {
@@ -52,44 +74,65 @@ export class ConfigAccountComponent {
           this.userTypeLabel = 'USER';
         }
         this.loadDocuments();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error al obtener usuario:', err);
         this.user = null;
         this.userTypeLabel = '';
         this.userDocuments = [];
+        this.cdr.detectChanges();
       }
     });
   }
 
   loadDocuments() {
-    // Suponiendo que los documentos están en user.documents (ajusta si es diferente)
+
   this.userDocuments = this.user?.documentsUrl || [];
   }
 
-  onChangePassword() {
+  async onChangePassword() {
     this.passwordError = '';
     this.passwordSuccess = '';
-    if (!this.newPassword || !this.confirmPassword) {
-      this.passwordError = 'Por favor, completa ambos campos.';
+    if (this.passwordForm.invalid) {
+      this.passwordError = 'Por favor, corrige los errores en el formulario.';
+      this.passwordForm.markAllAsTouched();
       return;
     }
-    if (this.newPassword !== this.confirmPassword) {
-      this.passwordError = 'Las contraseñas no coinciden.';
-      return;
-    }
-    // Aquí podrías pedir la contraseña actual si lo deseas
-    this.userService.changePassword({ currentPassword: '', newPassword: this.newPassword }).subscribe({
-      next: () => {
-        this.passwordSuccess = 'Contraseña cambiada exitosamente.';
-        this.newPassword = '';
-        this.confirmPassword = '';
-        this.showChangePassword = false;
-      },
-      error: (err) => {
-        this.passwordError = 'Error al cambiar la contraseña.';
-      }
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: '¿Deseas cambiar tu contraseña?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cambiar',
+      cancelButtonText: 'Cancelar'
     });
+    if (result.isConfirmed) {
+  const currentPassword = this.passwordForm.get('currentPassword')?.value;
+  const newPassword = this.passwordForm.get('newPassword')?.value;
+      this.userService.changePassword({ currentPassword, newPassword }).subscribe({
+        next: async (response) => {
+          this.passwordSuccess = 'Contraseña cambiada exitosamente.';
+          this.passwordForm.reset();
+          this.showChangePassword = false;
+          await Swal.fire({
+            icon: 'success',
+            title: '¡Contraseña cambiada!',
+            text: typeof response === 'string' ? response : 'Tu contraseña fue actualizada correctamente.',
+            confirmButtonText: 'Aceptar'
+          });
+        },
+        error: async (err) => {
+          this.passwordError = 'Error al cambiar la contraseña.';
+          await Swal.fire({
+            icon: 'error',
+            title: 'Error al cambiar la contraseña',
+            text: (typeof err?.error === 'string' && err?.error) ? err.error : (err?.error?.message || 'Hubo un problema al actualizar la contraseña. Verifica la contraseña actual e inténtalo de nuevo.'),
+            confirmButtonText: 'Cerrar'
+          });
+        }
+      });
+    }
   }
 
   onFileSelected(event: any) {
@@ -123,4 +166,27 @@ export class ConfigAccountComponent {
       }
     });
   }
+
+    onBecomeHost() {
+      if (!this.user) return;
+      this.authService.becomeHost().subscribe({
+        next: () => {
+          this.loadUser();
+          Swal.fire({
+            icon: 'success',
+            title: '¡Felicidades! 🎉',
+            text: 'Ahora eres HOST. Puedes publicar alojamientos.',
+            confirmButtonText: 'Aceptar',
+          });
+        },
+        error: (err) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo convertir a HOST. Intenta de nuevo.',
+            confirmButtonText: 'Cerrar',
+          });
+        }
+      });
+    }
 }

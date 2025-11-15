@@ -4,32 +4,37 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ReservationService } from '../../services/reservation.service';
 import { MercadoPagoService } from '../../services/mercado-pago.service';
 import { ReservationDTO } from '../../models/reservation.model';
-import { CommonModule, DatePipe, DecimalPipe, NgClass, NgOptimizedImage } from '@angular/common';
+import { CommonModule, DatePipe, NgClass } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AccommodationService } from '../../services/accommodation.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import Swal from 'sweetalert2';
+import { CommentService } from '../../services/comment.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-reservations',
   standalone: true,
-  imports: [CommonModule, DatePipe, DecimalPipe, NgClass, RouterModule, NgOptimizedImage],
+  imports: [CommonModule, DatePipe, NgClass, RouterModule, FormsModule],
   templateUrl: './reservations.html',
   styleUrl: './reservations.css'
 })
 export class Reservations implements OnInit {
-
   reservations: ReservationDTO[] = [];
   loading = true;
   errorMessage = '';
+  selectedReservation: ReservationDTO | null = null;
+  rating: number = 5;
+  commentText: string = '';
 
   constructor(
     private reservationService: ReservationService,
     private mercadoPagoService: MercadoPagoService,
     private accommodationService: AccommodationService,
+    private commentService: CommentService,
     private router: Router,
-    private cdr: ChangeDetectorRef   
+    private cdr: ChangeDetectorRef  
   ) {}
 
   ngOnInit(): void {
@@ -240,6 +245,7 @@ checkPaymentStatus(): void {
         title: 'Pago procesado',
         text: 'El pago fue procesado pero no se actualizó la reserva. Contacta soporte.',
       });
+      return;
     }
   });
 }
